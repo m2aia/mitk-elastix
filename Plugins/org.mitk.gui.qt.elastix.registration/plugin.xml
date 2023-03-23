@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+
+  <extension point="org.blueberry.ui.views">
+    <view id="org.mitk.views.elastix.registration"
+          name="Elastix Registration"
+          class="RegistrationView"
+          category="Registration"
+          icon="resources/icon.svg" />
+  </extension>
+
+</plugin>
