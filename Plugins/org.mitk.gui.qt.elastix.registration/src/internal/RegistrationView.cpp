@@ -50,6 +50,9 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <mitkNodePredicateProperty.h>
 #include <mitkPointSet.h>
 #include <mitkProgressBar.h>
+#include <mitkCoreServices.h>
+#include <mitkIPreferences.h>
+#include <mitkIPreferencesService.h>
 
 // itk
 #include <itkInvertIntensityImageFilter.h>
@@ -233,10 +236,10 @@ void RegistrationView::OnSelectionChanged(berry::IWorkbenchPart::Pointer /*part*
 
 QString RegistrationView::GetElastixPathFromPreferences() const
 {
-  berry::IPreferences::Pointer preferences =
-    berry::Platform::GetPreferencesService()->GetSystemPreferences()->Node("/org.mitk.gui.qt.m2aia.preferences");
+  auto preferences =
+    mitk::CoreServices::GetPreferencesService()->GetSystemPreferences()->Node("/org.mitk.gui.qt.m2aia.preferences");
 
-  return preferences.IsNotNull() ? preferences->Get("elastix", "") : "";
+  return (preferences != nullptr ? preferences->Get("elastix", "") : "").c_str();
 }
 
 void RegistrationView::OnPostProcessReconstruction()

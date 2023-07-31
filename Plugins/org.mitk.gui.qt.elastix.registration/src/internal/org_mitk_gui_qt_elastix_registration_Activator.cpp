@@ -17,7 +17,9 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 
 #include "org_mitk_gui_qt_elastix_registration_Activator.h"
 #include "RegistrationView.h"
-#include <berryPlatform.h>
+#include <mitkIPreferencesService.h>
+#include <mitkIPreferences.h>
+#include <mitkCoreServices.h>
 
 namespace mitk
 {
@@ -25,18 +27,18 @@ namespace mitk
   {
     BERRY_REGISTER_EXTENSION_CLASS(RegistrationView, context)
 
-    berry::IPreferencesService *preferencesService = berry::Platform::GetPreferencesService();
+    auto preferencesService = mitk::CoreServices::GetPreferencesService();
     if (preferencesService != nullptr)
     {
-      berry::IPreferences::Pointer systemPreferences = preferencesService->GetSystemPreferences();
+      auto systemPreferences = preferencesService->GetSystemPreferences();
 
-      if (systemPreferences.IsNotNull()){
+      if (systemPreferences){
         auto preferences = systemPreferences->Node("/org.mitk.gui.qt.ext.externalprograms");
-        if(preferences->Get("elastix","").isEmpty())
+        if(preferences->Get("elastix","").empty())
           preferences->Put("elastix","");
         preferences->Put("elastix_check","--version=elastix");
 
-        if(preferences->Get("transformix","").isEmpty())
+        if(preferences->Get("transformix","").empty())
           preferences->Put("transformix","");
         preferences->Put("transformix_check","--version=transformix");
       }
