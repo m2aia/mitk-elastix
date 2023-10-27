@@ -3,9 +3,9 @@
 
   <extension point="org.blueberry.ui.views">
     <view id="org.mitk.views.elastix.registration"
-          name="Elastix Registration"
+          name="M2OLIE Registration"
           class="RegistrationView"
-          category="Registration"
+          category="M2OLIE"
           icon="resources/icon.svg" />
   </extension>
 

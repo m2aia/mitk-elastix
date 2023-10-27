@@ -75,6 +75,8 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
   m_Controls.setupUi(parent);
   m_Parent = parent;
   m_Controls.tabWidget->setCornerWidget(m_Controls.btnAddModality);
+  m_Controls.groupBoxExperimental->hide();
+  m_Controls.groupBoxControls->hide();
 
   m_FixedEntity = new RegistrationDataWidget(parent, this->GetDataStorage());
   m_FixedEntity->EnableButtons(false);
