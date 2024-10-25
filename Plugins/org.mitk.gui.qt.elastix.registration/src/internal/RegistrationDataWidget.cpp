@@ -22,6 +22,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <m2ElxRegistrationHelper.h>
 #include <mitkDataStorage.h>
 #include <mitkImage.h>
+#include <mitkLabelSetImage.h>
 #include <mitkNodePredicateAnd.h>
 #include <mitkNodePredicateDataType.h>
 #include <mitkNodePredicateNot.h>
@@ -33,6 +34,8 @@ RegistrationDataWidget::RegistrationDataWidget(QWidget *parent, mitk::DataStorag
 {
   m_Controls.setupUi(this);
   m_Controls.imageSelection->SetDataStorage(m_DataStorage);
+
+  
   
   m_RegistrationData = std::make_shared<RegistrationData>();
 
@@ -67,6 +70,8 @@ RegistrationDataWidget::RegistrationDataWidget(QWidget *parent, mitk::DataStorag
   connect(m_Controls.btnApplyTransforms, SIGNAL(clicked()), this, SLOT(OnApplyTransformations()));
   connect(m_Controls.btnRemove, SIGNAL(clicked()), this, SIGNAL(RemoveSelf()));
   connect(m_Controls.addMovingPointSet, SIGNAL(clicked()), this, SLOT(OnAddPointSet()));
+  
+
 }
 
 RegistrationDataWidget::~RegistrationDataWidget() {}
@@ -75,16 +80,21 @@ void RegistrationDataWidget::SetDataStorage(mitk::DataStorage::Pointer storage){
   m_DataStorage = storage;
 }
 
+
 void RegistrationDataWidget::OnLoadTransformations()
 {
   const QString filter = tr("Elastix Parameterfile (*.txt)");
   const auto paths = QFileDialog::getOpenFileNames(m_Parent, "Load elastix transform parameter files.", "", filter);
   m_RegistrationData->m_Transformations.clear();
+  unsigned int i = 0;
+  const auto node = m_Controls.imageSelection->GetSelectedNode();
   for (auto p : paths)
   {
     std::ifstream reader(p.toStdString());
     std::string s((std::istreambuf_iterator<char>(reader)), std::istreambuf_iterator<char>());
     m_RegistrationData->m_Transformations.push_back(s);
+    node->SetStringProperty((std::string("m2aia.registration.path.") + std::to_string(i)).c_str(), p.toStdString().c_str());
+    ++i;
   }
 }
 
@@ -93,6 +103,7 @@ void RegistrationDataWidget::OnSaveTransformations()
   const QString filter = tr("Elastix Parameterfile (*.txt)");
   QString path;
   unsigned int i = 0;
+  const auto node = m_Controls.imageSelection->GetSelectedNode();
   for (auto t : m_RegistrationData->m_Transformations)
   {
     const auto name = m_RegistrationData->m_Name + "_transform" + std::to_string(i) + ".txt";
@@ -101,8 +112,11 @@ void RegistrationDataWidget::OnSaveTransformations()
     spath.push_back(name.c_str());
     path = spath.join('/');
     path = QFileDialog::getSaveFileName(
-      m_Parent, tr("Save transformation ") + std::to_string(i++).c_str() + " file", path, filter);
+      m_Parent, tr("Save transformation ") + std::to_string(i).c_str() + " file", path, filter);
     std::ofstream(path.toStdString()) << t;
+
+    node->SetStringProperty((std::string("m2aia.registration.path.") + std::to_string(i)).c_str(), path.toStdString().c_str());
+    ++i;
   }
 }
 
@@ -113,7 +127,12 @@ void RegistrationDataWidget::OnApplyTransformations()
   const auto node = m_Controls.imageSelection->GetSelectedNode();
   const auto image = dynamic_cast<const mitk::Image *>(node->GetData());
   warpingHelper.SetTransformations(m_RegistrationData->m_Transformations);
-  auto result = warpingHelper.WarpImage(image);
+  mitk::Image::Pointer result;
+  if(dynamic_cast<const mitk::LabelSetImage *>(image)){
+    result = warpingHelper.WarpImage(image, "short");
+  }else{
+    result = warpingHelper.WarpImage(image);
+  }
   auto newNode = mitk::DataNode::New();
   newNode->SetData(result);
   newNode->SetName(node->GetName() + "(warped)");

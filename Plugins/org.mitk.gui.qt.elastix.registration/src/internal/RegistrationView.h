@@ -77,6 +77,7 @@ public slots:
   void OnPostProcessReconstruction();
   void OnAddRegistrationData();
   void OnRemoveRegistrationData(QWidget * registrationDataWidget);
+  void OnSelectChannels();
 };
 
 #endif // Registration_h

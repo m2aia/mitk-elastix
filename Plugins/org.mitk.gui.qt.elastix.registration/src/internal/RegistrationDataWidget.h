@@ -36,7 +36,7 @@ private slots:
   void OnSaveTransformations();
   void OnApplyTransformations();
   void OnAddPointSet();
-
+  
 public:
   RegistrationDataWidget(QWidget *parent, mitk::DataStorage::Pointer storage);
   ~RegistrationDataWidget();

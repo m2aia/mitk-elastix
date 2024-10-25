@@ -64,6 +64,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <m2ElxRegistrationHelper.h>
 #include <m2ElxUtil.h>
 #include <ui_ParameterFileEditorDialog.h>
+#include <ui_ComponentSelectionDialog.h>
 
 const std::string RegistrationView::VIEW_ID = "org.mitk.views.elastix.registration";
 
@@ -161,6 +162,94 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
     m_ParameterFiles = {m_ParameterFileEditorControls.rigidText->toPlainText().toStdString(),
                         m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
   });
+
+  connect(m_Controls.btnSelectChannels, SIGNAL(clicked()), this, SLOT(OnSelectChannels()));
+}
+
+std::vector<std::string> splitString(const std::string& str, char delimiter = ';') {
+    std::vector<std::string> tokens;
+    std::stringstream ss(str);
+    for (std::string token; std::getline(ss, token, delimiter); )
+        tokens.push_back(token);
+    return tokens;
+}
+
+void RegistrationView::OnSelectChannels(){
+
+  auto dia = new QDialog(m_Parent);
+
+  Ui::ComponentSelectionDialog ui;
+  ui.setupUi(dia);
+  
+  auto fixedEntity = dynamic_cast<RegistrationDataWidget *>(m_Controls.tabWidget->widget(0));
+  if (fixedEntity->HasImage())
+  {
+    auto image = fixedEntity->GetImage();
+    auto channelDetailsProperty = image->GetProperty("channel.details");
+    if (channelDetailsProperty)
+    {
+      auto stringOfNames = channelDetailsProperty->GetValueAsString();
+      auto listOfNames = splitString(stringOfNames);
+      unsigned int itemIndex = 0;
+      for (auto name : listOfNames)
+      {
+        auto item = new QListWidgetItem();
+        ui.listWidget->addItem(item);
+        auto *itemWidget = new QCheckBox(name.c_str());
+        itemWidget->setAutoExclusive(true);
+        ui.listWidget->setItemWidget(item, itemWidget);
+        connect(itemWidget, &QCheckBox::toggled, this, [&, itemIndex](bool toggled)
+                {
+            if(toggled){
+              fixedEntity->GetImageNode()->SetIntProperty("Image.Displayed Component", itemIndex);
+                this->GetRenderWindowPart()->RequestUpdate();
+            } });
+        ++itemIndex;
+      }
+    }
+  }
+
+  if(auto movingEntity = dynamic_cast<RegistrationDataWidget *>(m_Controls.tabWidget->widget(1))){
+    if (movingEntity->HasImage())
+    {
+      auto image = movingEntity->GetImage();
+      auto channelDetailsProperty = image->GetProperty("channel.details");
+      if (channelDetailsProperty)
+      {
+        auto stringOfNames = channelDetailsProperty->GetValueAsString();
+        auto listOfNames = splitString(stringOfNames);
+        unsigned int itemIndex = 0;
+        for (auto name : listOfNames)
+        {
+          auto item = new QListWidgetItem();
+          ui.movingImageListWidget->addItem(item);
+          auto *itemWidget = new QCheckBox(name.c_str());
+          ui.movingImageListWidget->setItemWidget(item, itemWidget);
+          item->setData(Qt::UserRole, QVariant(itemIndex));
+          // connect(itemWidget, &QCheckBox::clicked, this, [&, itemIndex](bool toggled)
+          //         {
+          //     if(toggled){
+          //       movingEntity->GetImageNode()->SetIntProperty("Image.Displayed Component", itemIndex);
+          //         this->GetRenderWindowPart()->RequestUpdate();
+          //     } });
+          ++itemIndex;
+        }
+      }
+    }
+    connect(ui.movingImageListWidget, &QListWidget::itemDoubleClicked, this, [&](QListWidgetItem * item)
+                  {
+              if(item){
+                movingEntity->GetImageNode()->SetIntProperty("Image.Displayed Component", item->data(Qt::UserRole).toInt());
+                  this->GetRenderWindowPart()->RequestUpdate();
+              }
+          });
+  }
+
+  
+  if(dia->exec()){
+    
+  }
+  delete dia;
 }
 
 void RegistrationView::OnAddRegistrationData()
@@ -483,6 +572,8 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   }
 }
 
+
+
 void RegistrationView::OnStartRegistration()
 {
   // check dimensionalities
@@ -503,9 +594,22 @@ void RegistrationView::OnStartRegistration()
 
   const auto gridSpacing = m_Controls.spinBoxFinalGridSpacing->value();
   const auto iterations = m_Controls.spinBxIterations->value();
+  
 
   m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalGridSpacingInPhysicalUnits", std::to_string(gridSpacing));
   m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MaximumNumberOfIterations", std::to_string(iterations));
+
+  auto text = m_Controls.comboBox->currentText();
+  if(text == "None"){
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "false");
+  }else if(text == "Geometrical Center"){
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "true");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "GeometricalCenter");
+  }else if(text == "Center of Gravity"){
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "true");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "CenterOfGravity");
+  }
+  
 
   if (maxDimZ > 1)
   {

@@ -12,6 +12,7 @@ set(UI_FILES
   src/internal/RegistrationViewControls.ui
   src/internal/ParameterFileEditorDialog.ui
   src/internal/RegistrationDataWidgetControls.ui
+  src/internal/ComponentSelectionDialog.ui
 )
 
 set(MOC_H_FILES
