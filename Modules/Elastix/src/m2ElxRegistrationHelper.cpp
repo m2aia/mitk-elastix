@@ -3,6 +3,10 @@
 #include <m2ElxDefaultParameterFiles.h>
 #include <m2ElxRegistrationHelper.h>
 #include <m2ElxUtil.h>
+
+#include <itkVectorIndexSelectionCastImageFilter.h>
+#include <itkExtractImageFilter.h>
+
 #include <mitkImage.h>
 #include <mitkImageCast.h>
 #include <mitkImageAccessByItk.h>
@@ -12,6 +16,11 @@
 
 m2::ElxRegistrationHelper::~ElxRegistrationHelper() {
   MITK_INFO << "Destruct ElxRegistrationHelper";
+}
+
+m2::ElxRegistrationHelper::ElxRegistrationHelper(){
+  // m_ChannelSelections.push_back(std::make_pair(0,0));
+  // m_ChannelSelections.push_back(std::make_pair(10,10));
 }
 
 bool m2::ElxRegistrationHelper::CheckDimensions(const mitk::Image *image) const
@@ -47,7 +56,7 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::ConvertForElastixProcessing(cons
   if (image)
   {
     const auto dim = image->GetDimension();
-    const auto dimensions = image->GetDimensions();
+    // const auto dimensions = image->GetDimensions();
     const auto sizeZ = image->GetDimensions()[2];
     auto geom3D = image->GetSlicedGeometry();
     auto n = std::accumulate(image->GetDimensions(), image->GetDimensions() + 2, 1, std::multiplies<>()) *
@@ -56,40 +65,36 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::ConvertForElastixProcessing(cons
     {
       auto output = mitk::Image::New();
       AccessByItk(const_cast<mitk::Image *>(image), ([&](auto I) {
-                using ImagePixelType = typename std::remove_pointer<decltype(I)>::type::PixelType;
-                using ImageType2D = itk::Image<ImagePixelType, 2>;
-                typename ImageType2D::Pointer outputItk = ImageType2D::New();
-                typename ImageType2D::RegionType region;
-                region.SetSize(typename ImageType2D::SizeType{dimensions[0],dimensions[1]});
-                region.SetIndex(typename ImageType2D::IndexType{0,0});
+                using Image3DType = typename std::remove_pointer<decltype(I)>::type;
+                using ImagePixelType = typename Image3DType::PixelType;
+                using Image2DType = itk::Image<ImagePixelType, 2>;
+   
+                // Extract a 2D slice
+                using ExtractFilterType = itk::ExtractImageFilter<Image3DType, Image2DType>;
+                typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
 
-                outputItk->SetRegions(region);
-                outputItk->Allocate();
+                // Set the input image
+                extractFilter->SetInput(I);
 
-                auto s = outputItk->GetSpacing();
-                s[0] = I->GetSpacing()[0];
-                s[1] = I->GetSpacing()[1];
-                outputItk->SetSpacing(s);
+                // Define the region to extract (slice)
+                typename Image3DType::RegionType inputRegion = I->GetLargestPossibleRegion();
+                typename Image3DType::SizeType size = inputRegion.GetSize();
+                size[2] = 0; // We are extracting a 2D slice along the z-axis
 
-                auto o = outputItk->GetOrigin();
-                o[0] = I->GetOrigin()[0];
-                o[1] = I->GetOrigin()[1];
-                outputItk->SetOrigin(o);
+                typename Image3DType::IndexType start = inputRegion.GetIndex();
+                start[2] = 0; // The slice index along the z-axis
+
+                typename Image3DType::RegionType desiredRegion;
+                desiredRegion.SetSize(size);
+                desiredRegion.SetIndex(start);
+
+                extractFilter->SetExtractionRegion(desiredRegion);
+                extractFilter->SetDirectionCollapseToSubmatrix();
+                extractFilter->Update();
                 
-                auto d = outputItk->GetDirection();
-                d[0][0] = I->GetDirection()[0][0];
-                d[0][1] = I->GetDirection()[0][1];
-                d[1][0] = I->GetDirection()[1][0];
-                d[1][1] = I->GetDirection()[1][1];
-
-                outputItk->SetDirection(d);
-                mitk::CastToMitkImage(outputItk, output);
+                mitk::CastToMitkImage(extractFilter->GetOutput(), output);
                 
               }));
-
-      mitk::ImageReadAccessor iAcc(image);
-      mitk::ImageWriteAccessor oAcc(output);
-      std::copy((const char *)iAcc.GetData(), (const char *)iAcc.GetData() + n, (char *)oAcc.GetData());
       return output;
     }
     else if (dim == 2)
@@ -125,21 +130,47 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::ConvertForM2aiaProcessing(const 
 {
   if (image)
   {
-    auto geom3D = image->GetSlicedGeometry();
-    auto n = std::accumulate(image->GetDimensions(), image->GetDimensions() + 2, 1, std::multiplies<>()) *
-             image->GetPixelType().GetSize();
+    // auto geom3D = image->GetSlicedGeometry();
+    // const auto N = std::accumulate(image->GetDimensions(), image->GetDimensions() + 2, 1, std::multiplies<>()) *
+            //  image->GetPixelType().GetSize();
     if (image->GetDimension() == 2)
     {
-      unsigned int d[3]{image->GetDimensions()[0], image->GetDimensions()[1], 1};
-      auto output = mitk::Image::New();
-      output->Initialize(image->GetPixelType(), 3, d);
-      output->GetSlicedGeometry()->SetSpacing(geom3D->GetSpacing());
-      output->GetSlicedGeometry()->SetOrigin(geom3D->GetOrigin());
-      output->GetSlicedGeometry()->SetDirectionVector(geom3D->GetDirectionVector());
-      mitk::ImageReadAccessor iAcc(image);
-      mitk::ImageWriteAccessor oAcc(output);
-      std::copy((const char *)iAcc.GetData(), (const char *)iAcc.GetData() + n, (char *)oAcc.GetData());
-      return output;
+       // Get the size of the 2D image
+      mitk::PixelType pixelType = image->GetPixelType();
+      unsigned int width = image->GetDimension(0);
+      unsigned int height = image->GetDimension(1);
+
+      // Create a new 3D image with the same width and height, but with a depth of 1
+      mitk::Image::Pointer outputImage3D = mitk::Image::New();
+      unsigned int dimensions[3] = { width, height, 1 };
+      outputImage3D->Initialize(pixelType, 3, dimensions);
+
+      // Copy spacing, origin, and direction
+      mitk::Vector3D spacing = image->GetGeometry()->GetSpacing();
+      mitk::Point3D origin = image->GetGeometry()->GetOrigin();
+      auto directionMatrix = image->GetGeometry()->GetIndexToWorldTransform();
+
+      // Adjust the spacing and origin for the 3rd dimension
+      spacing[2] = 1.0; // Arbitrary spacing for the single slice in the 3rd dimension
+      origin[2] = 0.0; // Set origin for the 3rd dimension
+
+      outputImage3D->SetSpacing(spacing);
+      outputImage3D->GetGeometry()->SetOrigin(origin);
+      outputImage3D->GetGeometry()->SetIndexToWorldTransform(directionMatrix);
+
+      // Create write access to the 3D image data
+      mitk::ImageWriteAccessor writeAccess(outputImage3D);
+      mitk::ImageReadAccessor readAccess(image);
+
+      // Get the raw data pointers
+      auto inputData = readAccess.GetData();
+      auto outputData = writeAccess.GetData();
+
+      // Copy the 2D image data to the first slice of the 3D image
+      std::memcpy(outputData, inputData, image->GetPixelType().GetSize() * width * height);
+
+        return outputImage3D;
+     
     }
     else
     {
@@ -234,6 +265,10 @@ void m2::ElxRegistrationHelper::SetAdditionalBinarySearchPath(const std::string 
   m_BinarySearchPath = ElxUtil::JoinPath({path});
 }
 
+void m2::ElxRegistrationHelper::SetChannelSelections(const std::vector<std::pair<unsigned int, unsigned int>> & channelSelections){
+  m_ChannelSelections = channelSelections;
+}
+
 void m2::ElxRegistrationHelper::CreateWorkingDirectory() const
 {
   // Create a temporary directory if workdir not defined
@@ -250,6 +285,8 @@ void m2::ElxRegistrationHelper::CreateWorkingDirectory() const
     MITK_INFO << "Use External Working Directory: " << m_WorkingDirectory;
   }
 }
+
+
 
 void m2::ElxRegistrationHelper::GetRegistration()
 {
@@ -303,23 +340,63 @@ void m2::ElxRegistrationHelper::GetRegistration()
     m_StatusFunction("Parameter file written: " + targetParamterFilePath);
   }
 
-  std::string inputLocationMovingImage;
-  // const auto movingResultPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "result.0.nrrd"});
-  // const auto movingMaskResultPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "result.nrrd"});
-  const auto movingPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "moving.nrrd"});
-  const auto fixedPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "fixed.nrrd"});
-  // auto convertedMovingImage = GetSlice2DData(m_MovingImage);
+  Poco::Process::Args args;
+  args.insert(args.end(), {"-out", m_WorkingDirectory});
 
-
-  SymlinkOrWriteNrrd(m_MovingImage, movingPath);
-  SymlinkOrWriteNrrd(m_FixedImage, fixedPath);
+  // SAVE MOVING IMAGE(s) ON DISK
+  if(m_MovingImage->GetPixelType().GetNumberOfComponents() > 1){
+      mitk::Image::Pointer output;
+      unsigned int component = 0;
+      for(auto channelSelection : m_ChannelSelections){
+        AccessVectorPixelTypeByItk(m_MovingImage, ([&](auto itkImage){
+          using SourceImageType = typename std::remove_pointer<decltype(itkImage)>::type;
+          using ScalarImageType = itk::Image<typename SourceImageType::ValueType::ComponentType, SourceImageType::ImageDimension>;
+          using IndexSelectionType = itk::VectorIndexSelectionCastImageFilter<SourceImageType, ScalarImageType>;
+          auto indexSelectionFilter = IndexSelectionType::New();
+          indexSelectionFilter->SetIndex(channelSelection.second);
+          indexSelectionFilter->SetInput(itkImage);
+          indexSelectionFilter->Update();
+          mitk::CastToMitkImage(indexSelectionFilter->GetOutput(), output); 
+        }));
+        const auto movingPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "moving"+std::to_string(channelSelection.second)+".nrrd"});
+        SymlinkOrWriteNrrd(output, movingPath);
+        args.insert(args.end(), {"-m"+ std::to_string(component), movingPath});
+        ++component;
+      }
+  }else{
+    const auto movingPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "moving.nrrd"});
+    SymlinkOrWriteNrrd(m_MovingImage, movingPath);
+    args.insert(args.end(), {"-m", movingPath});
+  }
+  
+  // SAVE FIXED IMAGE(s) ON DISK
+  if(m_FixedImage->GetPixelType().GetNumberOfComponents() > 1){
+      mitk::Image::Pointer output;
+      unsigned int component = 0;
+      for(auto channelSelection : m_ChannelSelections){
+        AccessVectorPixelTypeByItk(m_FixedImage, ([&](auto itkImage){
+          using SourceImageType = typename std::remove_pointer<decltype(itkImage)>::type;
+          using ScalarImageType = itk::Image<typename SourceImageType::ValueType::ComponentType, SourceImageType::ImageDimension>;
+          using IndexSelectionType = itk::VectorIndexSelectionCastImageFilter<SourceImageType, ScalarImageType>;
+          auto indexSelectionFilter = IndexSelectionType::New();
+          indexSelectionFilter->SetIndex(channelSelection.first);
+          indexSelectionFilter->SetInput(itkImage);
+          indexSelectionFilter->Update();
+          mitk::CastToMitkImage(indexSelectionFilter->GetOutput(), output); 
+        }));
+        const auto fixedPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "fixed"+std::to_string(channelSelection.first)+".nrrd"});
+        // const auto movingPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "moving"+std::to_string(component)+".nrrd"});
+        SymlinkOrWriteNrrd(output, fixedPath);
+        args.insert(args.end(), {"-f"+ std::to_string(component), fixedPath});
+        ++component;
+      }
+  }else{
+    const auto fixedPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "fixed.nrrd"});
+    SymlinkOrWriteNrrd(m_FixedImage, fixedPath);
+    args.insert(args.end(), {"-f", fixedPath});
+  }
 
   
-  // START THE REGISTRATION
-  Poco::Process::Args args;
-  args.insert(args.end(), {"-f", fixedPath});
-  args.insert(args.end(), {"-m", movingPath});
-  args.insert(args.end(), {"-out", m_WorkingDirectory});
   if (m_UseMasksForRegistration)
   {
     const auto fixedMaskPath = ElxUtil::JoinPath({m_WorkingDirectory, "/", "fixedMask.nrrd"});
@@ -452,8 +529,16 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image* inp
     // }
 
     ElxUtil::ReplaceParameter(T, "ResultImagePixelType", "\"" + pixelType + "\"");
-    ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalBSplineInterpolatorFloat\"");
-    ElxUtil::ReplaceParameter(T, "FinalBSplineInterpolationOrder", std::to_string(interpolationOrder));
+    if(pixelType == "short"){
+      ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalNearestNeighborInterpolator\"");
+      
+    }else{
+      ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalBSplineInterpolatorFloat\"");
+      ElxUtil::ReplaceParameter(T, "FinalBSplineInterpolationOrder", std::to_string(interpolationOrder));
+
+    }
+
+
     // ElxUtil::ReplaceParameter(T, "Spacing", newSpacingString);
     // ElxUtil::ReplaceParameter(T, "Size", newSizeString);
     if (i == 0)
@@ -463,7 +548,7 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image* inp
     else if (i > 0)
     {
       const auto initialTransform =
-        ElxUtil::JoinPath({m_WorkingDirectory, "/", "TransformParameters." + std::to_string(i - 1) + ".txt"});
+      ElxUtil::JoinPath({m_WorkingDirectory, "/", "TransformParameters." + std::to_string(i - 1) + ".txt"});
       ElxUtil::ReplaceParameter(T, "InitialTransformParametersFileName", "\"" + initialTransform + "\"");
     }
 

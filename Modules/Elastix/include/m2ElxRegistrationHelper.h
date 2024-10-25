@@ -42,6 +42,7 @@ namespace m2
     std::vector<std::string> m_Transformations;
     std::vector<std::string> m_RegistrationParameters = {}; // forces elastix default
     std::string m_BinarySearchPath = "";
+    std::vector<std::pair<unsigned int, unsigned int>> m_ChannelSelections;
 
     bool m_UseMasksForRegistration = false;
     bool m_UsePointsForRegistration = false;
@@ -85,6 +86,8 @@ namespace m2
     
 
   public:
+    ElxRegistrationHelper();
+    virtual ~ElxRegistrationHelper();
     // Registration
     void SetImageData(mitk::Image *fixed, mitk::Image *moving);
     void SetFixedImageMaskData(mitk::Image *fixed);
@@ -93,14 +96,14 @@ namespace m2
     void SetRegistrationParameters(const std::vector<std::string> &);
     void SetRemoveWorkingDirectory(bool val);
     void SetAdditionalBinarySearchPath(const std::string &list);
-    virtual ~ElxRegistrationHelper();
     void UseMovingImageSpacing(bool val){this->m_UseMovingImageSpacing = val;};
 
     void GetRegistration();
     std::vector<std::string> GetTransformation() const;
     void SetTransformations(const std::vector<std::string> & trafos);
     void SetStatusCallback(const std::function<void(std::string)> & callback);
-    
+    void SetChannelSelections(const std::vector<std::pair<unsigned int, unsigned int>> & ch_selection);
+
     mitk::Image::Pointer GetFixedImage() const{
       return m_FixedImage;
     }
