@@ -65,6 +65,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <m2ElxUtil.h>
 #include <ui_ParameterFileEditorDialog.h>
 #include <ui_ComponentSelectionDialog.h>
+#include <m2ElxDefaultParameterFiles.h>
 
 const std::string RegistrationView::VIEW_ID = "org.mitk.views.elastix.registration";
 
@@ -82,10 +83,6 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
   m_FixedEntity->m_Controls.imageSelection->SetAutoSelectNewNodes(true);
   m_Controls.tabWidget->addTab(m_FixedEntity, "Fixed");
 
-  m_ParameterFiles = {m2::Elx::Rigid(), m2::Elx::Deformable()};
-
-  m_ParameterFileEditor = new QDialog(parent);
-  m_ParameterFileEditorControls.setupUi(m_ParameterFileEditor);
 
   connect(m_Controls.btnStartRecon, SIGNAL(clicked()), this, SLOT(OnPostProcessReconstruction()));
 
@@ -108,25 +105,10 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
 
   // m_Controls.registrationStrategy->setCurrentIndex(1);
 
-  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
-          &QAbstractButton::clicked,
-          this,
-          [this]() {
-            m_ParameterFileEditorControls.rigidText->setText(m2::Elx::Rigid().c_str());
-            m_ParameterFileEditorControls.deformableText->setText(m2::Elx::Deformable().c_str());
-          });
-
-  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::Close),
-          &QAbstractButton::clicked,
-          this,
-          [this]() {
-            m_ParameterFiles = {m_ParameterFileEditorControls.rigidText->toPlainText().toStdString(),
-                                m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
-          });
-
   connect(m_Controls.btnStartRegistration, SIGNAL(clicked()), this, SLOT(OnStartRegistration()));
 
   connect(m_Controls.btnAddModality, SIGNAL(clicked()), this, SLOT(OnAddRegistrationData()));
+  connect(m_Controls.btnSelectChannels, SIGNAL(clicked()), this, SLOT(OnSelectChannels()));
 
   connect(m_Controls.btnOpenPontSetInteractionView, &QPushButton::clicked, this, []() {
     try
@@ -143,19 +125,27 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
     }
   });
 
-  // connect(m_Controls.addFixedPointSet, &QPushButton::clicked, this, [&]() {
-  //   auto node = mitk::DataNode::New();
-  //   node->SetData(mitk::PointSet::New());
-  //   node->SetName("FixedPointSet");
-  //   auto fixedNode = m_FixedEntity->m_Controls.imageSelection->GetSelectedNode();
-  //   if (fixedNode)
-  //     this->GetDataStorage()->Add(node, fixedNode);
-  //   else
-  //     this->GetDataStorage()->Add(node);
-  //   node->SetFloatProperty("point 2D size", 0.5);
-  //   node->SetProperty("color", mitk::ColorProperty::New(1.0f, 0.0f, 0.0f));
-  //   this->m_FixedEntity->m_Controls.pointSetSelection->SetCurrentSelection({node});
-  // });
+
+  m_ParameterFiles = {m2::Elx::Rigid(), m2::Elx::Deformable()};
+
+  m_ParameterFileEditor = new QDialog(parent);
+  m_ParameterFileEditorControls.setupUi(m_ParameterFileEditor);
+
+  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
+          &QAbstractButton::clicked,
+          this,
+          [this]() {
+            m_ParameterFileEditorControls.rigidText->setText(m2::Elx::Rigid().c_str());
+            m_ParameterFileEditorControls.deformableText->setText(m2::Elx::Deformable().c_str());
+          });
+
+  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::Close),
+          &QAbstractButton::clicked,
+          this,
+          [this]() {
+            m_ParameterFiles = {m_ParameterFileEditorControls.rigidText->toPlainText().toStdString(),
+                                m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
+          });
 
   connect(m_Controls.btnEditParameterFiles, &QPushButton::clicked, this, [this]() {
     m_ParameterFileEditor->exec();
@@ -163,7 +153,6 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
                         m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
   });
 
-  connect(m_Controls.btnSelectChannels, SIGNAL(clicked()), this, SLOT(OnSelectChannels()));
 }
 
 std::vector<std::string> splitString(const std::string& str, char delimiter = ';') {

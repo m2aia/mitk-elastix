@@ -1,6 +1,7 @@
 set(CPP_FILES
   m2ElxRegistrationHelper.cpp
   m2ElxUtil.cpp
+  m2ElxDefaultParameterFiles.cpp
 )
 
 # set(UI_FILES

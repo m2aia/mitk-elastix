@@ -10,7 +10,7 @@ set(INTERNAL_CPP_FILES
 
 set(UI_FILES
   src/internal/RegistrationViewControls.ui
-  src/internal/ParameterFileEditorDialog.ui
+  src/ParameterFileEditorDialog.ui
   src/internal/RegistrationDataWidgetControls.ui
   src/internal/ComponentSelectionDialog.ui
 )

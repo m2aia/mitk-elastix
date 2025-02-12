@@ -39,10 +39,13 @@ namespace m2
     mitk::Image::Pointer m_MovingMask;
     mitk::PointSet::Pointer m_MovingPoints;
 
+    mitk::Image::Pointer m_DeformationField;
     std::vector<std::string> m_Transformations;
     std::vector<std::string> m_RegistrationParameters = {}; // forces elastix default
     std::string m_BinarySearchPath = "";
     std::vector<std::pair<unsigned int, unsigned int>> m_ChannelSelections;
+
+    mutable std::vector<std::string> m_ListOFWorkingDirectories;
 
     bool m_UseMasksForRegistration = false;
     bool m_UsePointsForRegistration = false;
@@ -78,11 +81,12 @@ namespace m2
     */
     mitk::Image::Pointer ConvertForM2aiaProcessing(const mitk::Image *) const;
 
-    void CreateWorkingDirectory() const;
-    void RemoveWorkingDirectory() const;
+    std::string CreateWorkingDirectory() const;
+    void RemoveWorkingDirectory(std::string) const;
     void SymlinkOrWriteNrrd(mitk::Image::Pointer image, std::string targetPath) const;
-
     std::function<void(std::string)> m_StatusFunction = [](std::string){};
+    std::string WriteTransformation(std::string workingDirectory) const;
+    void TransformixDeformationField(std::string workingDirectory);
     
 
   public:
@@ -116,6 +120,7 @@ namespace m2
                                    const std::string &type = "float",
                                    const unsigned char &interpolationOrder = 3) const;
     mitk::Image::Pointer WarpPoints(mitk::PointSet *);
+    mitk::Image::Pointer GetDeformationField() const;
   };
 
 } // namespace m2
