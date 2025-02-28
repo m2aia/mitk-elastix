@@ -20,6 +20,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 
 #include <ctkPluginActivator.h>
 
+
 namespace mitk
 {
   class org_mitk_gui_qt_elastix_registration_Activator : public QObject, public ctkPluginActivator

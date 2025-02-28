@@ -21,6 +21,10 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <mitkIPreferences.h>
 #include <mitkCoreServices.h>
 
+#include <usModuleInitialization.h>
+
+US_INITIALIZE_MODULE
+
 namespace mitk
 {
   void org_mitk_gui_qt_elastix_registration_Activator::start(ctkPluginContext *context)

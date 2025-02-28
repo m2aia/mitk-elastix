@@ -16,20 +16,21 @@ See LICENSE.txt for details.
 #include <m2ElxConfig.h>
 #include <m2ElxUtil.h>
 #include <mitkException.h>
-
+#include <Poco/Environment.h>
 
 
 std::string m2::ElxUtil::Executable(const std::string &name, std::string additionalSearchPath)
 {
-  std::string elxPath, elxPathExe = "";
+  std::string elxPathExe = "";
+
   const std::string version = "5";
-
-  if (additionalSearchPath.empty())
-  {
-    additionalSearchPath = ELASTIX_DIR;
-    // this works only during development
-  }
-
+  std::string elxPath = additionalSearchPath;
+  
+  
+  if (elxPath.empty())
+    elxPath = Elastix_DIR;
+  
+    
   std::string correctedName = itksys::SystemTools::GetFilenameWithoutExtension(name);
 #ifdef __WIN32__
   correctedName += ".exe";
@@ -38,15 +39,17 @@ std::string m2::ElxUtil::Executable(const std::string &name, std::string additio
   const auto regex = std::regex{correctedName + "[a-z:\\s]+" + version + "\\.[0-9]+"};
 
   { // check additionalSearchPath
-    if (!itksys::SystemTools::FileIsDirectory(additionalSearchPath))
-      elxPath = itksys::SystemTools::GetParentDirectory(additionalSearchPath);
-    else
-      elxPath = additionalSearchPath;
+
+    if (!itksys::SystemTools::FileIsDirectory(elxPath))
+      elxPath = itksys::SystemTools::GetParentDirectory(elxPath);
+    
     elxPathExe = m2::ElxUtil::JoinPath({elxPath, "/", correctedName});
     if (m2::ElxUtil::CheckVersion(elxPathExe, regex))
     {
-      MITK_INFO << "Use Elastix found at [" << elxPath << "]";
       return elxPathExe;
+    }else{
+      MITK_ERROR << "Elastix executables could not be found!\n"
+                    "Please specify the system variable ELASTIX_PATH";
     }
   }
 
@@ -84,15 +87,19 @@ bool m2::ElxUtil::CheckVersion(const std::string &executablePath,
 {
   Poco::Process::Args args;
   args.push_back(argVersion);
+
+      
   Poco::Pipe outPipe;
   Poco::PipeInputStream istr(outPipe);
-  Poco::ProcessHandle ph(Poco::Process::launch(executablePath, args, nullptr, &outPipe, nullptr));
+  const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+  Poco::ProcessHandle ph(Poco::Process::launch(executablePath, args, nullptr, &outPipe, nullptr, env));
   ph.wait();
   std::stringstream ss;
   Poco::StreamCopier::copyStream(istr, ss);
   auto pass = std::regex_search(ss.str(), version_regex);
   if (pass)
     MITK_INFO << ss.str();
+  MITK_INFO << "Check Ok";
   return pass;
 }
 

@@ -3,6 +3,7 @@
 #include <m2ElxDefaultParameterFiles.h>
 #include <m2ElxRegistrationHelper.h>
 #include <m2ElxUtil.h>
+#include <m2ElxConfig.h>
 
 #include <itkVectorIndexSelectionCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -21,6 +22,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include <itkConstantPadImageFilter.h>
+#include <Poco/Environment.h>
 
 m2::ElxRegistrationHelper::~ElxRegistrationHelper()
 {
@@ -312,7 +314,7 @@ void m2::ElxRegistrationHelper::GetRegistration()
   const auto exeElastix = m2::ElxUtil::Executable("elastix", m_BinarySearchPath);
   if (exeElastix.empty())
     mitkThrow() << "Elastix executable not found!";
-
+  MITK_INFO << "Use Elastix found at [" << exeElastix << "]";
   auto workingDirectory = CreateWorkingDirectory();
 
   if (m_RegistrationParameters.empty())
@@ -474,9 +476,10 @@ void m2::ElxRegistrationHelper::GetRegistration()
   }
 
   m_StatusFunction("Registration started ...");
-
+  
   Poco::Pipe oPipe;
-  Poco::ProcessHandle ph(Poco::Process::launch(exeElastix, args, nullptr, &oPipe, nullptr));
+  const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+  Poco::ProcessHandle ph(Poco::Process::launch(exeElastix, args, nullptr, &oPipe, nullptr, env));
   oPipe.close();
   ph.wait();
 
@@ -550,8 +553,11 @@ void m2::ElxRegistrationHelper::TransformixDeformationField(std::string workingD
     args.insert(args.end(), {"-tp", transformationPath});
     args.insert(args.end(), {"-out", workingDirectory});
 
+    
+
     Poco::Pipe oPipe;
-    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr));
+    const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
     oPipe.close();
     ph.wait();
 
@@ -699,8 +705,11 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
     args.insert(args.end(), {"-tp", transformationPath});
     args.insert(args.end(), {"-out", workingDirectory});
 
+    
+
     Poco::Pipe oPipe;
-    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr));
+    const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
     oPipe.close();
     ph.wait();
 

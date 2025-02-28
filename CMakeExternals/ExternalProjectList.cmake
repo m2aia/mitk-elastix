@@ -1,1 +1,1 @@
-mitkFunctionAddExternalProject(NAME ElastixBinaries ON)
+mitkFunctionAddExternalProject(NAME Elastix ON)
