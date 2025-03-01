@@ -45,7 +45,7 @@ namespace m2
     std::string m_BinarySearchPath = "";
     std::vector<std::pair<unsigned int, unsigned int>> m_ChannelSelections;
 
-    mutable std::vector<std::string> m_ListOFWorkingDirectories;
+    // mutable std::vector<std::string> m_ListOFWorkingDirectories;
 
     bool m_UseMasksForRegistration = false;
     bool m_UsePointsForRegistration = false;

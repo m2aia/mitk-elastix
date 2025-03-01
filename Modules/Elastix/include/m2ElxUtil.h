@@ -20,6 +20,7 @@ See LICENSE.txt for details.
 #include <Poco/PipeStream.h>
 #include <Poco/Process.h>
 #include <Poco/StreamCopier.h>
+#include <boost/process.hpp>
 #include <itksys/System.h>
 #include <itksys/SystemTools.hxx>
 // #include <m2CoreCommon.h>
@@ -97,6 +98,50 @@ namespace m2
      */
     static std::string Executable(const std::string &name, std::string additionalSearchPath = "");
 
+
+    /**
+     * @brief Execute a command and return the output as a string.
+     * 
+     * @param cmd The command to be executed
+     * @return std::string The output of the command
+     */
+    static std::string run(const std::string& command, const std::vector<std::string>& args) {
+      namespace bp = boost::process;
+      std::ostringstream output;
+      bp::ipstream pipe_stream, pipe_errstream;
+
+      MITK_INFO << "Check [" + command + "] ";
+      std::cout  << "Arguments: ";
+      for(auto arg : args){
+        std::cout << arg << " ";
+      }
+
+      // Launch the process:
+      // - 'command' is the executable,
+      // - 'bp::args(args)' passes the command line arguments,
+      // - 'bp::std_out > pipe_stream' redirects stdout to our pipe_stream.
+      bp::child c("/opt/elastix/bin/"+command, bp::args(args), 
+                  bp::env["LD_LIBRARY_PATH"] = "/opt/elastix/lib",
+                  bp::std_out > pipe_stream,  
+                  bp::std_err > pipe_errstream);
+
+      // Read output line by line
+      std::string line;
+      while (std::getline(pipe_stream, line)) {
+          output << line << "\n";
+      }
+
+      // Read error line by line
+      std::string error;
+      while (std::getline(pipe_errstream, error)) {
+          output << error << "\n";
+      }
+
+      // Wait for the process to finish
+      c.wait();
+      return output.str();
+  }
+
     /**
      * @brief CheckVersion can be used to evaluate the version of any external executable using regular expressions.
      * System::CheckVersion("path/to/exe", std::regex{"exeinfo[a-z:\\s]+5\\.[0-9]+"}, "--version")
@@ -106,9 +151,9 @@ namespace m2
      * @param argVersion
      * @return bool
      */
-    static bool CheckVersion(const std::string &executablePath,
-                             const std::regex &version_regex,
-                             const std::string &argVersion = "--version");
+    static bool CheckVersion(std::string executablePath,
+                             std::string version_regex,
+                             std::string argVersion = "--version");
 
     /**
      * @brief CreatePath can be used to normalize and join path arguments

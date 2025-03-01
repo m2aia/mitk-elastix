@@ -26,10 +26,10 @@
 
 m2::ElxRegistrationHelper::~ElxRegistrationHelper()
 {
-  for(auto dir : m_ListOFWorkingDirectories)
-  {
-    itksys::SystemTools::RemoveADirectory(dir);
-  }
+  // for(auto dir : m_ListOFWorkingDirectories)
+  // {
+  //   itksys::SystemTools::RemoveADirectory(dir);
+  // }
 }
 
 m2::ElxRegistrationHelper::ElxRegistrationHelper()
@@ -299,7 +299,7 @@ std::string m2::ElxRegistrationHelper::CreateWorkingDirectory() const
     MITK_INFO << "Use External Working Directory: " << workingDirectory;
   }
 
-  m_ListOFWorkingDirectories.push_back(workingDirectory);
+  // m_ListOFWorkingDirectories.push_back(workingDirectory);
   return workingDirectory;
 }
 
@@ -311,11 +311,13 @@ void m2::ElxRegistrationHelper::GetRegistration()
     return;
   }
 
-  const auto exeElastix = m2::ElxUtil::Executable("elastix", m_BinarySearchPath);
+  const auto exeElastix = m2::ElxUtil::Executable("elastix");
   if (exeElastix.empty())
     mitkThrow() << "Elastix executable not found!";
   MITK_INFO << "Use Elastix found at [" << exeElastix << "]";
   auto workingDirectory = CreateWorkingDirectory();
+  MITK_INFO << workingDirectory << " " << itksys::SystemTools::PathExists(workingDirectory);
+  
 
   if (m_RegistrationParameters.empty())
     m_RegistrationParameters.push_back(m2::Elx::Rigid());
@@ -360,7 +362,7 @@ void m2::ElxRegistrationHelper::GetRegistration()
     m_StatusFunction("Parameter file written: " + targetParamterFilePath);
   }
 
-  Poco::Process::Args args;
+  std::vector<std::string> args;
   args.insert(args.end(), {"-out", workingDirectory});
 
   // SAVE MOVING IMAGE(s) ON DISK
@@ -475,16 +477,23 @@ void m2::ElxRegistrationHelper::GetRegistration()
     args.insert(args.end(), {"-p", parameterFile});
   }
 
-  m_StatusFunction("Registration started ...");
+  MITK_INFO << "Registration started ...";
+  MITK_INFO << exeElastix;
+  for(auto kv : args){
+    MITK_INFO << kv;
+  }
   
-  Poco::Pipe oPipe;
-  const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
-  Poco::ProcessHandle ph(Poco::Process::launch(exeElastix, args, nullptr, &oPipe, nullptr, env));
-  oPipe.close();
-  ph.wait();
+  
+  // const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+  // Poco::ProcessHandle ph(Poco::Process::launch(exeElastix, args, nullptr, &oPipe, nullptr, env));
+  // Poco::ProcessHandle ph(Poco::Process::launch(exeElastix, args, nullptr, nullptr, nullptr));
+  // ph.wait();
 
-  m_StatusFunction("Registration finished.");
+  m2::ElxUtil::run(exeElastix, args);
 
+  
+
+  MITK_INFO << "Registration finished.";
   for (unsigned int i = 0; i < m_RegistrationParameters.size(); ++i)
   {
     const auto transformationParameterFile =
@@ -504,9 +513,12 @@ void m2::ElxRegistrationHelper::GetRegistration()
     mitkThrow() << "Elastix log file contains error: " << lastLine;
   }
 
-  m_StatusFunction("Transformation parameters assimilated");
-
+  MITK_INFO << "Transformation parameters assimilated";
+  // try{
   TransformixDeformationField(workingDirectory);
+  // }catch(std::exception& e){
+  MITK_INFO << "Registration OK!";
+  // }
   // RemoveWorkingDirectory(workingDirectory);
 }
 
@@ -555,11 +567,15 @@ void m2::ElxRegistrationHelper::TransformixDeformationField(std::string workingD
 
     
 
-    Poco::Pipe oPipe;
-    const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
-    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
-    oPipe.close();
-    ph.wait();
+    // Poco::Pipe oPipe;
+    // const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+    // Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
+    // Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, nullptr, nullptr));
+    // ph.wait();
+
+    m2::ElxUtil::run(exeTransformix, args);
+
+    // oPipe.close();
 
     auto dataVector = mitk::IOUtil::Load(deformationFieldPath);
     if (auto deformationField = dynamic_cast<mitk::Image *>(dataVector.front().GetPointer()))
@@ -707,12 +723,15 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
 
     
 
-    Poco::Pipe oPipe;
-    const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
-    Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
-    oPipe.close();
-    ph.wait();
+    // Poco::Pipe oPipe;
+    // const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
+    // Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, &oPipe, nullptr, env));
+    // Poco::ProcessHandle ph(Poco::Process::launch(exeTransformix, args, nullptr, nullptr, nullptr));
+    // ph.wait();
 
+    m2::ElxUtil::run(exeTransformix, args);
+    
+    // oPipe.close();
     mitk::Image::Pointer result;
     try
     {

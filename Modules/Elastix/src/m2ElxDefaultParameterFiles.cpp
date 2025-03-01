@@ -111,7 +111,7 @@ std::string m2::Elx::Deformable()
 // ***************** Transformation **************************
 
 // (FinalGridSpacingInPhysicalUnits 0.35)
-(FinalGridSpacingInVoxels 40)
+// (FinalGridSpacingInVoxels 40)
 // (GridSpacingSchedule 8.0 8.0 3.0 3.0 2.5 2.5 1.0 1.0)
 // (GridSpacingSchedule 4.0 4.0 2.0 1.0)
 (HowToCombineTransforms "Compose")

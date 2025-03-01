@@ -18,88 +18,106 @@ See LICENSE.txt for details.
 #include <mitkException.h>
 #include <Poco/Environment.h>
 
-
-std::string m2::ElxUtil::Executable(const std::string &name, std::string additionalSearchPath)
+std::string m2::ElxUtil::Executable(const std::string &name, std::string)
 {
-  std::string elxPathExe = "";
-
-  const std::string version = "5";
-  std::string elxPath = additionalSearchPath;
-  
-  
-  if (elxPath.empty())
-    elxPath = Elastix_DIR;
-  
-    
   std::string correctedName = itksys::SystemTools::GetFilenameWithoutExtension(name);
-#ifdef __WIN32__
+  #ifdef __WIN32__
   correctedName += ".exe";
-#endif
+  #endif
+  
+  const std::string version = "5";
+  const std::string regex = correctedName + "[a-z:\\s]+5\\.[0-9]+";
 
-  const auto regex = std::regex{correctedName + "[a-z:\\s]+" + version + "\\.[0-9]+"};
-
-  { // check additionalSearchPath
-
-    if (!itksys::SystemTools::FileIsDirectory(elxPath))
-      elxPath = itksys::SystemTools::GetParentDirectory(elxPath);
-    
-    elxPathExe = m2::ElxUtil::JoinPath({elxPath, "/", correctedName});
-    if (m2::ElxUtil::CheckVersion(elxPathExe, regex))
-    {
-      return elxPathExe;
-    }else{
-      MITK_ERROR << "Elastix executables could not be found!\n"
-                    "Please specify the system variable ELASTIX_PATH";
-    }
+  if(m2::ElxUtil::CheckVersion(correctedName, regex)){
+    return correctedName;
+  }else{
+    mitkThrow() << "Elastix executables could not be found!\n"
+                  "Please specify the system variable ELASTIX_PATH";
   }
+  
+  
+  
+  
+  // std::string elxPathExe = "";
 
-  { // check system variable ELASTIX_PATH
-    itksys::SystemTools::GetEnv("ELASTIX_PATH", elxPath);
-    elxPathExe = m2::ElxUtil::JoinPath({elxPath, "/", correctedName});
-    if (m2::ElxUtil::CheckVersion(elxPathExe, regex))
-    {
-      MITK_INFO << "Use Elastix found at [" << elxPath << "]";
-      return elxPathExe;
-    }
-  }
+  // std::string elxPath = additionalSearchPath;
 
-  { // check PATH
-    if (m2::ElxUtil::CheckVersion(correctedName, regex))
-    {
-      itksys::SystemTools::GetEnv("PATH", elxPath);
-      MITK_INFO << "Use system Elastix found in [" << elxPath << "]";
-      elxPathExe = correctedName;
-      return elxPathExe;
-    }
-    else
-    {
-      MITK_ERROR << "Elastix executables could not be found!\n"
-                    "Please specify the system variable ELASTIX_PATH";
-    }
-  }
+  // if (elxPath.empty())
+  //   elxPath = Elastix_DIR;
+
+
+
+  // { // check PATH
+  //   if ()
+  //   {
+  //     itksys::SystemTools::GetEnv("PATH", elxPath);
+  //     MITK_INFO << "Use system Elastix found in [" << elxPath << "]";
+  //     elxPathExe = correctedName;
+  //     return elxPathExe;
+  //   }
+  //   else
+  //   {
+  //     MITK_ERROR << "Elastix executables could not be found!\n"
+  //                   "Please specify the system variable ELASTIX_PATH";
+  //   }
+  // }
+
+  // { // check additionalSearchPath
+
+  //   if (!itksys::SystemTools::FileIsDirectory(elxPath))
+  //     elxPath = itksys::SystemTools::GetParentDirectory(elxPath);
+
+  //   elxPathExe = m2::ElxUtil::JoinPath({elxPath, "/", correctedName});
+  //   if (m2::ElxUtil::CheckVersion(elxPathExe, regex))
+  //   {
+  //     return elxPathExe;
+  //   }
+  //   else
+  //   {
+  //     MITK_ERROR << "Elastix executables could not be found!\n"
+  //                   "Please specify the system variable ELASTIX_PATH";
+  //   }
+  // }
+
+  // { // check system variable ELASTIX_PATH
+  //   itksys::SystemTools::GetEnv("ELASTIX_PATH", elxPath);
+  //   elxPathExe = m2::ElxUtil::JoinPath({elxPath, "/", correctedName});
+  //   if (m2::ElxUtil::CheckVersion(elxPathExe, regex))
+  //   {
+  //     MITK_INFO << "Use Elastix found at [" << elxPath << "]";
+  //     return elxPathExe;
+  //   }
+  // }
 
   return "";
 }
 
-bool m2::ElxUtil::CheckVersion(const std::string &executablePath,
-                               const std::regex &version_regex,
-                               const std::string &argVersion)
+bool m2::ElxUtil::CheckVersion(std::string executablePath,
+                               std::string version_regex,
+                               std::string)
 {
-  Poco::Process::Args args;
-  args.push_back(argVersion);
-
-      
-  Poco::Pipe outPipe;
-  Poco::PipeInputStream istr(outPipe);
-  const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
-  Poco::ProcessHandle ph(Poco::Process::launch(executablePath, args, nullptr, &outPipe, nullptr, env));
-  ph.wait();
-  std::stringstream ss;
-  Poco::StreamCopier::copyStream(istr, ss);
-  auto pass = std::regex_search(ss.str(), version_regex);
+  MITK_INFO << "Check [" + executablePath + "] ";
+  // Poco::Pipe outPipe;
+  // Poco::PipeInputStream istr(outPipe);
+  // Poco::ProcessHandle ph(Poco::Process::launch(executablePath, args, nullptr, &outPipe, nullptr));
+  // ph.wait();
+  std::vector<std::string> args;
+  args.push_back("--version");
+  std::string output;
+  try{
+    output = m2::ElxUtil::run(executablePath, args);
+  }catch(std::exception& e){
+    MITK_ERROR << "m2::ElxUtil::run Faild " << e.what();
+    return false;
+  }  
+  
+  auto pass = std::regex_search(output, std::regex{version_regex});
   if (pass)
-    MITK_INFO << ss.str();
-  MITK_INFO << "Check Ok";
+    MITK_INFO << "-> " << output;
+  else{
+    MITK_INFO << "Check Faild " << output;
+    MITK_INFO << "Regex:" << version_regex;
+  }
   return pass;
 }
 
