@@ -197,5 +197,13 @@ namespace m2
 
       f.close();
     }
+
+      
+
+    static inline std::string to_string(const std::vector<std::string> &list) noexcept
+    {
+      return std::accumulate(list.begin(), list.end(), std::string(), [](const std::string &a, const std::string &b) { return a + " " + b; });
+    }
+    
   };
 } // namespace m2

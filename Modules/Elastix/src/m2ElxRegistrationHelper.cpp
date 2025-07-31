@@ -478,10 +478,7 @@ void m2::ElxRegistrationHelper::GetRegistration()
   }
 
   MITK_INFO << "Registration started ...";
-  MITK_INFO << exeElastix;
-  for(auto kv : args){
-    MITK_INFO << kv;
-  }
+  MITK_INFO << exeElastix << " " << m2::ElxUtil::to_string(args);
   
   
   // const std::map<std::string , std::string> env{ {std::string("LD_LIBRARY_PATH"), std::string(Elastix_LIBRARY)}};
