@@ -601,24 +601,24 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
                                                           const unsigned char &interpolationOrder) const
 {
   auto data = ConvertForElastixProcessing(inputData);
-  auto fixedData = ConvertForElastixProcessing(m_FixedImage);
-
+  
   if (!CheckDimensions(data))
   {
     MITK_ERROR << "Image [" << m2::ElxUtil::GetShape(data) << "]. This is yet not implemented.\n"
-               << "Shape has to be [NxMx1]";
-    return nullptr;
-  }
-
- if (!CheckDimensions(fixedData))
-  {
-    MITK_ERROR << "Image [" << m2::ElxUtil::GetShape(fixedData) << "]. This is yet not implemented.\n"
-               << "Shape has to be [NxMx1]";
+    << "Shape has to be [NxMx1]";
     return nullptr;
   }
   
+  
   if (auto deformationField = GetDeformationField())
   {
+    auto fixedData = ConvertForElastixProcessing(m_FixedImage);
+    if (!CheckDimensions(fixedData))
+      {
+        MITK_ERROR << "Image [" << m2::ElxUtil::GetShape(fixedData) << "]. This is yet not implemented.\n"
+                  << "Shape has to be [NxMx1]";
+        return nullptr;
+      }
     using VectorImageType = itk::VectorImage<double, 2>;
     auto itkDeformationField = VectorImageType::New();
     mitk::CastToItkImage(deformationField, itkDeformationField);
