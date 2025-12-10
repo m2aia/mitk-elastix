@@ -30,6 +30,9 @@ See LICENSE.txt for details.
 #include <mitkPointSet.h>
 #include <regex>
 #include <string>
+#ifdef _WIN32
+#include <filesystem>
+#endif
 
 namespace m2
 {
@@ -88,13 +91,12 @@ namespace m2
 
     /**
      * @brief Search the system for elastix executables (name)
-     * 1) additional search path
-     * 2) check ELASTIX_PATH
-     * 3) check PATH
+     * On Windows: Uses ELASTIX_PATH environment variable
+     * On Unix: Uses additionalSearchPath, then ELASTIX_PATH, then /opt/elastix/bin
      *
-     * @param name
-     * @param additionalSearchPath
-     * @return std::string
+     * @param name The executable name (e.g., "elastix", "transformix")
+     * @param additionalSearchPath Optional additional search path (has highest priority on Unix)
+     * @return std::string Full path to the executable
      */
     static std::string Executable(const std::string &name, std::string additionalSearchPath = "");
 
@@ -102,7 +104,8 @@ namespace m2
     /**
      * @brief Execute a command and return the output as a string.
      * 
-     * @param cmd The command to be executed
+     * @param command The full path to the command to be executed
+     * @param args The command line arguments
      * @return std::string The output of the command
      */
     static std::string run(const std::string& command, const std::vector<std::string>& args) {
@@ -110,20 +113,24 @@ namespace m2
       std::ostringstream output;
       bp::ipstream pipe_stream, pipe_errstream;
 
-      MITK_INFO << "Check [" + command + "] ";
-      std::cout  << "Arguments: ";
-      for(auto arg : args){
-        std::cout << arg << " ";
+      MITK_INFO << "Executing: " << command;
+      MITK_INFO << "Arguments: ";
+      for(const auto& arg : args){
+        MITK_INFO << arg << " ";
       }
 
-      // Launch the process:
-      // - 'command' is the executable,
-      // - 'bp::args(args)' passes the command line arguments,
-      // - 'bp::std_out > pipe_stream' redirects stdout to our pipe_stream.
-      bp::child c("/opt/elastix/bin/"+command, bp::args(args), 
+#ifdef _WIN32
+      // On Windows, execute the command directly (full path expected)
+      bp::child c(command, bp::args(args), 
+                  bp::std_out > pipe_stream,  
+                  bp::std_err > pipe_errstream);
+#else
+      // On Unix systems, set LD_LIBRARY_PATH for Elastix
+      bp::child c(command, bp::args(args), 
                   bp::env["LD_LIBRARY_PATH"] = "/opt/elastix/lib",
                   bp::std_out > pipe_stream,  
                   bp::std_err > pipe_errstream);
+#endif
 
       // Read output line by line
       std::string line;
