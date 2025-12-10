@@ -46,15 +46,15 @@ std::string m2::ElxUtil::Executable(const std::string &name, std::string additio
   // 2. ELASTIX_PATH environment variable
   // 3. Default /opt/elastix/bin
   if (!additionalSearchPath.empty()) {
-    fullPath = m2::ElxUtil::JoinPath({additionalSearchPath, executableName});
+    fullPath = m2::ElxUtil::JoinPath({additionalSearchPath, "/", executableName});
     MITK_INFO << "Trying additional search path: " << fullPath;
   } else {
     const char* elastixPath = std::getenv("ELASTIX_PATH");
     if (elastixPath && *elastixPath) {
-      fullPath = m2::ElxUtil::JoinPath({elastixPath, executableName});
+      fullPath = m2::ElxUtil::JoinPath({elastixPath, "/", executableName});
       MITK_INFO << "Trying Unix ELASTIX_PATH: " << fullPath;
     } else {
-      fullPath = m2::ElxUtil::JoinPath({"/opt/elastix/bin", executableName});
+      fullPath = m2::ElxUtil::JoinPath({"/opt/elastix/bin", "/", executableName});
       MITK_INFO << "Trying default Unix path: " << fullPath;
     }
   }
