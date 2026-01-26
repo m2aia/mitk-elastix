@@ -128,7 +128,7 @@ void RegistrationDataWidget::OnApplyTransformations()
   const auto image = dynamic_cast<const mitk::Image *>(node->GetData());
   warpingHelper.SetTransformations(m_RegistrationData->m_Transformations);
   mitk::Image::Pointer result;
-  if(dynamic_cast<const mitk::LabelSetImage *>(image)){
+  if(dynamic_cast<const mitk::MultiLabelSegmentation *>(image)){
     result = warpingHelper.WarpImage(image, "short");
   }else{
     result = warpingHelper.WarpImage(image);
