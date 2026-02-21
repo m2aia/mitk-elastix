@@ -4,7 +4,21 @@
 
     std::string m2::Elx::Rigid()
     {
-      return R"((FixedInternalImagePixelType "float")
+      return R"(// =========================================================
+// Rigid registration parameter file
+// NOTE: The following parameters are overridden at runtime
+// by the Registration UI controls:
+//   Transform, Metric, NumberOfHistogramBins,
+//   NumberOfResolutions, MaximumNumberOfIterations,
+//   NumberOfSpatialSamples, Interpolator,
+//   BSplineInterpolationOrder, ResampleInterpolator,
+//   FinalBSplineInterpolationOrder,
+//   AutomaticTransformInitialization,
+//   AutomaticTransformInitializationMethod,
+//   FixedImageDimension, MovingImageDimension
+// =========================================================
+
+(FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
 (FixedImageDimension 2)
 (MovingImageDimension 2)
@@ -12,7 +26,6 @@
 
 // **************** Main Components **************************
 
-// The following components should usually be left as they are:
 (Registration "MultiResolutionRegistration")
 (Interpolator "LinearInterpolator")
 (ResampleInterpolator "FinalLinearInterpolator")
@@ -27,7 +40,7 @@
 
 (AutomaticScalesEstimation "true")
 (AutomaticTransformInitialization "true")
-(AutomaticTransformInitializationMethod "GeometricalCenters")
+(AutomaticTransformInitializationMethod "CenterOfGravity")
 (HowToCombineTransforms "Compose")
 
 // ******************* Similarity measure *********************
@@ -72,7 +85,7 @@
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
 (FinalBSplineInterpolationOrder 3)
 
-//Default pixel value for pixels that come from outside the picture:
+// Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
 
 (WriteTransformParametersEachResolution "false")
@@ -85,7 +98,19 @@
 
 std::string m2::Elx::Deformable()
     {
-      return R"((FixedInternalImagePixelType "float")
+      return R"(// =========================================================
+// Deformable registration parameter file
+// NOTE: The following parameters are overridden at runtime
+// by the Registration UI controls:
+//   Metric, NumberOfHistogramBins,
+//   NumberOfResolutions, MaximumNumberOfIterations,
+//   FinalGridSpacingInPhysicalUnits, NumberOfSpatialSamples,
+//   Interpolator, BSplineInterpolationOrder,
+//   ResampleInterpolator, FinalBSplineInterpolationOrder,
+//   FixedImageDimension, MovingImageDimension
+// =========================================================
+
+(FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
 (FixedImageDimension 2)
 (MovingImageDimension 2)
@@ -93,14 +118,13 @@ std::string m2::Elx::Deformable()
 
 // **************** Main Components **************************
 
-// The following components should usually be left as they are:
 (Registration "MultiResolutionRegistration")
+(Interpolator "LinearInterpolator")
 (ResampleInterpolator "FinalBSplineInterpolator")
 (Resampler "DefaultResampler")
 (Optimizer "AdaptiveStochasticGradientDescent")
 (Transform "RecursiveBSplineTransform")
 (Metric "AdvancedMattesMutualInformation")
-(Interpolator "BSplineInterpolator")
 (Metric0Weight 1.00)
 (Metric1Weight 0.80)
 
@@ -110,7 +134,7 @@ std::string m2::Elx::Deformable()
 
 // ***************** Transformation **************************
 
-// (FinalGridSpacingInPhysicalUnits 0.35)
+(FinalGridSpacingInPhysicalUnits 35.0)
 // (FinalGridSpacingInVoxels 40)
 // (GridSpacingSchedule 8.0 8.0 3.0 3.0 2.5 2.5 1.0 1.0)
 // (GridSpacingSchedule 4.0 4.0 2.0 1.0)
@@ -145,8 +169,6 @@ std::string m2::Elx::Deformable()
 // ************* Interpolation and Resampling ****************
 
 (BSplineInterpolationOrder 3)
-//(WriteTransformParametersEachResolution "true")
-//(WriteResultImageAfterEachResolution "true")
 
 // Order of B-Spline interpolation used for applying the final
 // deformation.
@@ -156,7 +178,7 @@ std::string m2::Elx::Deformable()
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
 (FinalBSplineInterpolationOrder 3)
 
-//Default pixel value for pixels that come from outside the picture:
+// Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
 
 // Choose whether to generate the deformed moving image.
@@ -165,6 +187,7 @@ std::string m2::Elx::Deformable()
 // want to analyze the deformation field for example.
 (WriteResultImage "true")
 (WriteTransformParametersEachResolution "false")
+//(WriteResultImageAfterEachResolution "true")
 
 // The pixel type and format of the resulting deformed moving image
 (ResultImagePixelType "float")
