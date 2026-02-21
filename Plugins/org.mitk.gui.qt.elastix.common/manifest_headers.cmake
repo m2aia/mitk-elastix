@@ -1,0 +1,5 @@
+set(Plugin-Name "Elastix Common Widgets")
+set(Plugin-Version "0.1")
+set(Plugin-Vendor "Jonas Cordes")
+set(Plugin-ContactAddress "jtfc@posteo.de")
+set(Require-Plugin org.mitk.gui.qt.common)

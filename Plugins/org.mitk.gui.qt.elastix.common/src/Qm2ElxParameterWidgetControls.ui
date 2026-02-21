@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Qm2ElxParameterWidgetControls</class>
+ <widget class="QWidget" name="Qm2ElxParameterWidgetControls">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>400</width><height>820</height></rect>
+  </property>
+  <property name="windowTitle"><string>Elastix Parameter Widget</string></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"><number>4</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+
+   <!-- ===== Registration Setup ===== -->
+   <item>
+    <widget class="QGroupBox" name="grpSetup">
+     <property name="title"><string>Registration Setup</string></property>
+     <layout class="QFormLayout" name="formSetup">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblInitialAlignment">
+        <property name="text"><string>Initial alignment:</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboInitialAlignment">
+        <property name="toolTip"><string>Pre-align images before registration to improve convergence</string></property>
+        <property name="currentIndex"><number>1</number></property>
+        <item><property name="text"><string>None</string></property></item>
+        <item><property name="text"><string>Center of Gravity</string></property></item>
+        <item><property name="text"><string>Geometrical Center</string></property></item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ===== Rigid Registration ===== -->
+   <item>
+    <widget class="QGroupBox" name="grpRigid">
+     <property name="title"><string>Rigid Registration</string></property>
+     <property name="checkable"><bool>true</bool></property>
+     <property name="checked"><bool>true</bool></property>
+     <layout class="QFormLayout" name="formRigid">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+
+      <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Transform:</string></property></widget></item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboRigidTransform">
+        <property name="toolTip"><string>Elastix transform model for the rigid stage</string></property>
+        <item><property name="text"><string>EulerTransform</string></property></item>
+        <item><property name="text"><string>SimilarityTransform</string></property></item>
+        <item><property name="text"><string>AffineTransform</string></property></item>
+       </widget>
+      </item>
+
+      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Metric:</string></property></widget></item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboRigidMetric">
+        <property name="toolTip"><string>Similarity metric for the rigid stage</string></property>
+        <item><property name="text"><string>AdvancedMattesMutualInformation</string></property></item>
+        <item><property name="text"><string>AdvancedNormalizedCorrelation</string></property></item>
+        <item><property name="text"><string>AdvancedMeanSquares</string></property></item>
+       </widget>
+      </item>
+
+      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget></item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spinRigidHistBins">
+        <property name="toolTip"><string>NumberOfHistogramBins (rigid)</string></property>
+        <property name="minimum"><number>8</number></property>
+        <property name="maximum"><number>256</number></property>
+        <property name="singleStep"><number>8</number></property>
+        <property name="value"><number>32</number></property>
+       </widget>
+      </item>
+
+      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget></item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="spinRigidResolutions">
+        <property name="toolTip"><string>NumberOfResolutions (rigid)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>8</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget></item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinRigidIterations">
+        <property name="toolTip"><string>MaximumNumberOfIterations (rigid)</string></property>
+        <property name="minimum"><number>50</number></property>
+        <property name="maximum"><number>5000</number></property>
+        <property name="singleStep"><number>50</number></property>
+        <property name="value"><number>300</number></property>
+       </widget>
+      </item>
+
+      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget></item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="spinRigidSpatialSamples">
+        <property name="toolTip"><string>NumberOfSpatialSamples (rigid)</string></property>
+        <property name="minimum"><number>1000</number></property>
+        <property name="maximum"><number>200000</number></property>
+        <property name="singleStep"><number>1000</number></property>
+        <property name="value"><number>25000</number></property>
+       </widget>
+      </item>
+
+      <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget></item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboRigidInterpolator">
+        <property name="toolTip"><string>Interpolator used during optimization (rigid)</string></property>
+        <item><property name="text"><string>LinearInterpolator</string></property></item>
+        <item><property name="text"><string>BSplineInterpolator</string></property></item>
+        <item><property name="text"><string>NearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="7" column="0"><widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget></item>
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="spinRigidBSplineOrder">
+        <property name="toolTip"><string>BSplineInterpolationOrder (rigid, used when interpolator is BSpline)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="8" column="0"><widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget></item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="comboRigidResampleInterpolator">
+        <property name="toolTip"><string>ResampleInterpolator used for final resampling (rigid)</string></property>
+        <item><property name="text"><string>FinalLinearInterpolator</string></property></item>
+        <item><property name="text"><string>FinalBSplineInterpolator</string></property></item>
+        <item><property name="text"><string>FinalNearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget></item>
+      <item row="9" column="1">
+       <widget class="QSpinBox" name="spinRigidFinalBSplineOrder">
+        <property name="toolTip"><string>FinalBSplineInterpolationOrder (rigid): 3=accurate, 1=linear, 0=nearest-neighbor/binary masks</string></property>
+        <property name="minimum"><number>0</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ===== Deformable Registration ===== -->
+   <item>
+    <widget class="QGroupBox" name="grpDeformable">
+     <property name="title"><string>Deformable Registration</string></property>
+     <property name="checkable"><bool>true</bool></property>
+     <property name="checked"><bool>true</bool></property>
+     <layout class="QFormLayout" name="formDeformable">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+
+      <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Metric:</string></property></widget></item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboDeformableMetric">
+        <property name="toolTip"><string>Similarity metric for the deformable stage</string></property>
+        <item><property name="text"><string>AdvancedMattesMutualInformation</string></property></item>
+        <item><property name="text"><string>AdvancedNormalizedCorrelation</string></property></item>
+        <item><property name="text"><string>AdvancedMeanSquares</string></property></item>
+       </widget>
+      </item>
+
+      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget></item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinDeformableResolutions">
+        <property name="toolTip"><string>NumberOfResolutions (deformable)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>8</number></property>
+        <property name="value"><number>4</number></property>
+       </widget>
+      </item>
+
+      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget></item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spinDeformableIterations">
+        <property name="toolTip"><string>MaximumNumberOfIterations (deformable)</string></property>
+        <property name="minimum"><number>100</number></property>
+        <property name="maximum"><number>10000</number></property>
+        <property name="singleStep"><number>50</number></property>
+        <property name="value"><number>750</number></property>
+       </widget>
+      </item>
+
+      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Grid spacing:</string></property></widget></item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="spinDeformableGridSpacing">
+        <property name="toolTip"><string>FinalGridSpacingInPhysicalUnits (mm)</string></property>
+        <property name="suffix"><string> mm</string></property>
+        <property name="decimals"><number>2</number></property>
+        <property name="minimum"><double>0.010000000000000</double></property>
+        <property name="maximum"><double>100000.000000000000000</double></property>
+        <property name="singleStep"><double>1.000000000000000</double></property>
+        <property name="value"><double>35.000000000000000</double></property>
+       </widget>
+      </item>
+
+      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget></item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinDeformableHistBins">
+        <property name="toolTip"><string>NumberOfHistogramBins (deformable)</string></property>
+        <property name="minimum"><number>8</number></property>
+        <property name="maximum"><number>256</number></property>
+        <property name="singleStep"><number>8</number></property>
+        <property name="value"><number>32</number></property>
+       </widget>
+      </item>
+
+      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget></item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="spinDeformableSpatialSamples">
+        <property name="toolTip"><string>NumberOfSpatialSamples (deformable)</string></property>
+        <property name="minimum"><number>1000</number></property>
+        <property name="maximum"><number>200000</number></property>
+        <property name="singleStep"><number>1000</number></property>
+        <property name="value"><number>25000</number></property>
+       </widget>
+      </item>
+
+      <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget></item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboDeformableInterpolator">
+        <property name="toolTip"><string>Interpolator used during optimization (deformable)</string></property>
+        <item><property name="text"><string>LinearInterpolator</string></property></item>
+        <item><property name="text"><string>BSplineInterpolator</string></property></item>
+        <item><property name="text"><string>NearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="7" column="0"><widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget></item>
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="spinDeformableBSplineOrder">
+        <property name="toolTip"><string>BSplineInterpolationOrder (deformable, used when interpolator is BSpline)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="8" column="0"><widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget></item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="comboDeformableResampleInterpolator">
+        <property name="toolTip"><string>ResampleInterpolator used for final resampling (deformable)</string></property>
+        <item><property name="text"><string>FinalBSplineInterpolator</string></property></item>
+        <item><property name="text"><string>FinalLinearInterpolator</string></property></item>
+        <item><property name="text"><string>FinalNearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget></item>
+      <item row="9" column="1">
+       <widget class="QSpinBox" name="spinDeformableFinalBSplineOrder">
+        <property name="toolTip"><string>FinalBSplineInterpolationOrder (deformable): 3=accurate, 1=linear, 0=nearest-neighbor/binary masks</string></property>
+        <property name="minimum"><number>0</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ===== Advanced button ===== -->
+   <item>
+    <widget class="QPushButton" name="btnAdvanced">
+     <property name="text"><string>Advanced…</string></property>
+     <property name="toolTip"><string>Open the raw elastix parameter file editor</string></property>
+    </widget>
+   </item>
+
+   <!-- bottom spacer -->
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>8</height></size></property>
+    </spacer>
+   </item>
+
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
