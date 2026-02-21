@@ -55,7 +55,6 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <mitkIPreferencesService.h>
 
 // itk
-#include <itkInvertIntensityImageFilter.h>
 #include <itksys/SystemTools.hxx>
 
 // m2
@@ -273,7 +272,7 @@ void RegistrationView::OnAddRegistrationData()
   widget->m_Controls.imageSelection->SetAutoSelectNewNodes(false);
   widget->m_Controls.imageSelection->SetNodePredicate(predicate);
 
-  auto name = (std::string("M") + std::to_string(m_Controls.tabWidget->count())).c_str();
+  auto name = (std::string("Moving ") + std::to_string(m_Controls.tabWidget->count())).c_str();
   auto newIndex = m_Controls.tabWidget->addTab(widget, name);
 
   connect(widget->m_Controls.btnRemove, &QAbstractButton::clicked, this, [widget, this]() {
@@ -386,19 +385,6 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   mitk::ProgressBar::GetInstance()->AddStepsToDo(6);
   mitk::ProgressBar::GetInstance()->SetPercentageVisible(false);
 
-  const auto invert = [](mitk::Image::Pointer image) {
-    mitk::Image::Pointer rImage;
-    AccessByItk(image, ([&](auto imageItk) mutable {
-                  using ItkImageType = typename std::remove_pointer<decltype(imageItk)>::type;
-                  auto filter = itk::InvertIntensityImageFilter<ItkImageType>::New();
-                  filter->SetInput(imageItk);
-                  filter->Update();
-                  typename ItkImageType::Pointer fout = filter->GetOutput();
-                  mitk::CastToMitkImage(fout, rImage);
-                }));
-    return rImage;
-  };
-
   // check if
   auto elastix = m2::ElxUtil::Executable("elastix");
   if (elastix.empty())
@@ -432,8 +418,6 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   {
     fixedImageNode = fixed->GetImageNode();
     fixedImage = fixed->GetImage();
-    if (m_Controls.chkBxInvertIntensities->isChecked())
-      fixedImage = invert(fixedImage);
 
     if (fixed->HasTransformations())
     {
@@ -453,8 +437,6 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   {
     movingImageNode = moving->GetImageNode();
     movingImage = moving->GetImage();
-    if (m_Controls.chkBxInvertIntensities->isChecked())
-      movingImage = invert(movingImage);
     mitk::ProgressBar::GetInstance()->Progress(1);
   }
   else
@@ -484,9 +466,14 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   {
     std::vector<std::string> parameterFiles = m_ParameterFiles;
 
-    if (!m_Controls.chkBxUseDeformableRegistration->isChecked() || parameterFiles.back().empty())
+    if (!m_Controls.grpDeformable->isChecked() || parameterFiles.back().empty())
     {
       parameterFiles.pop_back();
+    }
+
+    if (!m_Controls.grpRigid->isChecked() && !parameterFiles.empty() && parameterFiles.front() == m_ParameterFiles[0])
+    {
+      parameterFiles.erase(parameterFiles.begin());
     }
 
     auto helper = std::make_shared<m2::ElxRegistrationHelper>();
@@ -581,22 +568,70 @@ void RegistrationView::OnStartRegistration()
   // Use deformable transformations
   std::setlocale(LC_NUMERIC, "en_US.UTF-8");
 
-  const auto gridSpacing = m_Controls.spinBoxFinalGridSpacing->value();
-  const auto iterations = m_Controls.spinBxIterations->value();
-  
+  // --- Rigid registration parameters ---
+  {
+    const auto rigidTransform = m_Controls.comboBoxRigidTransform->currentText().toStdString();
+    const auto rigidMetric = m_Controls.comboBoxRigidMetric->currentText().toStdString();
+    const auto rigidHistBins = m_Controls.spinBxRigidHistBins->value();
+    const auto rigidResolutions = m_Controls.spinBxRigidResolutions->value();
+    const auto rigidIterations = m_Controls.spinBxRigidIterations->value();
+    const auto rigidSpatialSamples = m_Controls.spinBxRigidSpatialSamples->value();
 
-  m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalGridSpacingInPhysicalUnits", std::to_string(gridSpacing));
-  m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MaximumNumberOfIterations", std::to_string(iterations));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Transform", "\"" + rigidTransform + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Metric", "\"" + rigidMetric + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfHistogramBins", std::to_string(rigidHistBins));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfResolutions", std::to_string(rigidResolutions));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "MaximumNumberOfIterations", std::to_string(rigidIterations));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfSpatialSamples", std::to_string(rigidSpatialSamples));
 
+    const auto rigidInterpolator = m_Controls.comboBoxRigidInterpolator->currentText().toStdString();
+    const auto rigidBSplineOrder = m_Controls.spinBxRigidBSplineOrder->value();
+    const auto rigidResampleInterpolator = m_Controls.comboBoxRigidResampleInterpolator->currentText().toStdString();
+    const auto rigidFinalBSplineOrder = m_Controls.spinBxRigidFinalBSplineOrder->value();
+
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Interpolator", "\"" + rigidInterpolator + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "BSplineInterpolationOrder", std::to_string(rigidBSplineOrder));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "ResampleInterpolator", "\"" + rigidResampleInterpolator + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "FinalBSplineInterpolationOrder", std::to_string(rigidFinalBSplineOrder));
+  }
+
+  // --- Deformable registration parameters ---
+  {
+    const auto deformableMetric = m_Controls.comboBoxDeformableMetric->currentText().toStdString();
+    const auto deformableResolutions = m_Controls.spinBxDeformableResolutions->value();
+    const auto deformableIterations = m_Controls.spinBxIterations->value();
+    const auto gridSpacing = m_Controls.spinBoxFinalGridSpacing->value();
+    const auto deformableHistBins = m_Controls.spinBxDeformableHistBins->value();
+    const auto deformableSpatialSamples = m_Controls.spinBxDeformableSpatialSamples->value();
+
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "Metric", "\"" + deformableMetric + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfResolutions", std::to_string(deformableResolutions));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MaximumNumberOfIterations", std::to_string(deformableIterations));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalGridSpacingInPhysicalUnits", std::to_string(gridSpacing));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfHistogramBins", std::to_string(deformableHistBins));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfSpatialSamples", std::to_string(deformableSpatialSamples));
+
+    const auto deformableInterpolator = m_Controls.comboBoxDeformableInterpolator->currentText().toStdString();
+    const auto deformableBSplineOrder = m_Controls.spinBxDeformableBSplineOrder->value();
+    const auto deformableResampleInterpolator = m_Controls.comboBoxDeformableResampleInterpolator->currentText().toStdString();
+    const auto deformableFinalBSplineOrder = m_Controls.spinBxDeformableFinalBSplineOrder->value();
+
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "Interpolator", "\"" + deformableInterpolator + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "BSplineInterpolationOrder", std::to_string(deformableBSplineOrder));
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "ResampleInterpolator", "\"" + deformableResampleInterpolator + "\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalBSplineInterpolationOrder", std::to_string(deformableFinalBSplineOrder));
+  }
+
+  // --- Initial alignment ---
   auto text = m_Controls.comboBox->currentText();
   if(text == "None"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "false");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"false\"");
   }else if(text == "Geometrical Center"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "true");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "GeometricalCenter");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"true\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "\"GeometricalCenter\"");
   }else if(text == "Center of Gravity"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "true");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "CenterOfGravity");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"true\"");
+    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "\"CenterOfGravity\"");
   }
   
 

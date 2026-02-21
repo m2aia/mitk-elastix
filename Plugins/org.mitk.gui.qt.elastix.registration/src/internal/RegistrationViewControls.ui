@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>575</width>
-    <height>944</height>
+    <width>420</width>
+    <height>980</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -16,428 +16,478 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>0</height>
-   </size>
-  </property>
   <property name="windowTitle">
    <string>Elastix Registration</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+
+   <!-- ===== Image Data Tabs ===== -->
    <item>
-    <layout class="QHBoxLayout" name="fixedPointSetData_2">
+    <layout class="QHBoxLayout" name="hLayoutImageData">
      <item>
       <widget class="QPushButton" name="btnAddModality">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>25</width>
-         <height>25</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>25</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>+</string>
-       </property>
+       <property name="minimumSize"><size><width>25</width><height>25</height></size></property>
+       <property name="maximumSize"><size><width>25</width><height>16777215</height></size></property>
+       <property name="text"><string>+</string></property>
+       <property name="toolTip"><string>Add another image modality</string></property>
       </widget>
      </item>
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
+         <horstretch>0</horstretch><verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>200</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>200</height>
-        </size>
-       </property>
-       <property name="currentIndex">
-        <number>-1</number>
-       </property>
-       <property name="tabsClosable">
-        <bool>false</bool>
-       </property>
-       <property name="movable">
-        <bool>true</bool>
-       </property>
+       <property name="minimumSize"><size><width>0</width><height>200</height></size></property>
+       <property name="maximumSize"><size><width>16777215</width><height>200</height></size></property>
+       <property name="currentIndex"><number>-1</number></property>
+       <property name="tabsClosable"><bool>false</bool></property>
+       <property name="movable"><bool>true</bool></property>
       </widget>
      </item>
     </layout>
    </item>
+
+   <!-- ===== Channel / strategy buttons ===== -->
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <layout class="QHBoxLayout" name="hLayoutChannelStrategy">
      <item>
       <widget class="QPushButton" name="btnSelectChannels">
-       <property name="text">
-        <string>Select Channels</string>
-       </property>
+       <property name="text"><string>Select Channels</string></property>
+       <property name="toolTip"><string>Choose which channel to use for registration</string></property>
       </widget>
      </item>
      <item>
+      <spacer name="hSpacerStrategy">
+       <property name="orientation"><enum>Qt::Horizontal</enum></property>
+       <property name="sizeHint" stdset="0"><size><width>10</width><height>20</height></size></property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QCheckBox" name="rbAllToOne">
-       <property name="text">
-        <string>Register images to fixed image</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
+       <property name="text"><string>All → Fixed</string></property>
+       <property name="toolTip"><string>Register all images to the fixed image</string></property>
+       <property name="checked"><bool>true</bool></property>
+       <property name="autoExclusive"><bool>true</bool></property>
       </widget>
      </item>
      <item>
       <widget class="QCheckBox" name="rbSubsequent">
-       <property name="text">
-        <string>Register images subsequent (tab order; starting by fixed)</string>
-       </property>
-       <property name="autoExclusive">
-        <bool>true</bool>
-       </property>
+       <property name="text"><string>Subsequent</string></property>
+       <property name="toolTip"><string>Register images in tab order, starting from the fixed image</string></property>
+       <property name="autoExclusive"><bool>true</bool></property>
       </widget>
      </item>
     </layout>
    </item>
+
+   <item><widget class="Line" name="line_top"><property name="orientation"><enum>Qt::Horizontal</enum></property></widget></item>
+
+   <!-- ===== Registration Setup Group ===== -->
    <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
+    <widget class="QGroupBox" name="grpSetup">
+     <property name="title"><string>Registration Setup</string></property>
+     <layout class="QFormLayout" name="formSetup">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblInitAlign">
+        <property name="text"><string>Initial alignment:</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBox">
+        <property name="toolTip"><string>Pre-align images before registration to improve convergence</string></property>
+        <property name="currentIndex"><number>1</number></property>
+        <item><property name="text"><string>None</string></property></item>
+        <item><property name="text"><string>Center of Gravity</string></property></item>
+        <item><property name="text"><string>Geometrical Center</string></property></item>
+       </widget>
+      </item>
+
+     </layout>
     </widget>
    </item>
+
+   <!-- ===== Rigid Registration Group ===== -->
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Initial alignment:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBox">
-       <property name="currentIndex">
-        <number>2</number>
-       </property>
-       <item>
-        <property name="text">
-         <string>None</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Center of Gravity</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Geometrical Center</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
+    <widget class="QGroupBox" name="grpRigid">
+     <property name="title"><string>Rigid Registration</string></property>
+     <property name="checkable"><bool>true</bool></property>
+     <property name="checked"><bool>true</bool></property>
+     <layout class="QFormLayout" name="formRigid">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+
+      <item row="0" column="0">
+       <widget class="QLabel"><property name="text"><string>Transform:</string></property></widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBoxRigidTransform">
+        <property name="toolTip"><string>Elastix transform model for the rigid stage</string></property>
+        <item><property name="text"><string>EulerTransform</string></property></item>
+        <item><property name="text"><string>SimilarityTransform</string></property></item>
+        <item><property name="text"><string>AffineTransform</string></property></item>
+       </widget>
+      </item>
+
+      <item row="1" column="0">
+       <widget class="QLabel"><property name="text"><string>Metric:</string></property></widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="comboBoxRigidMetric">
+        <property name="toolTip"><string>Similarity metric for the rigid stage</string></property>
+        <item><property name="text"><string>AdvancedMattesMutualInformation</string></property></item>
+        <item><property name="text"><string>AdvancedNormalizedCorrelation</string></property></item>
+        <item><property name="text"><string>AdvancedMeanSquares</string></property></item>
+       </widget>
+      </item>
+
+      <item row="2" column="0">
+       <widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spinBxRigidHistBins">
+        <property name="toolTip"><string>NumberOfHistogramBins (rigid)</string></property>
+        <property name="minimum"><number>8</number></property>
+        <property name="maximum"><number>256</number></property>
+        <property name="singleStep"><number>8</number></property>
+        <property name="value"><number>32</number></property>
+       </widget>
+      </item>
+
+      <item row="3" column="0">
+       <widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QSpinBox" name="spinBxRigidResolutions">
+        <property name="toolTip"><string>NumberOfResolutions (rigid)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>8</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="4" column="0">
+       <widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinBxRigidIterations">
+        <property name="toolTip"><string>MaximumNumberOfIterations (rigid)</string></property>
+        <property name="minimum"><number>50</number></property>
+        <property name="maximum"><number>5000</number></property>
+        <property name="singleStep"><number>50</number></property>
+        <property name="value"><number>300</number></property>
+       </widget>
+      </item>
+
+      <item row="5" column="0">
+       <widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="spinBxRigidSpatialSamples">
+        <property name="toolTip"><string>NumberOfSpatialSamples (rigid)</string></property>
+        <property name="minimum"><number>1000</number></property>
+        <property name="maximum"><number>200000</number></property>
+        <property name="singleStep"><number>1000</number></property>
+        <property name="value"><number>25000</number></property>
+       </widget>
+      </item>
+
+      <item row="6" column="0">
+       <widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboBoxRigidInterpolator">
+        <property name="toolTip"><string>Interpolator used during optimization (rigid)</string></property>
+        <item><property name="text"><string>LinearInterpolator</string></property></item>
+        <item><property name="text"><string>BSplineInterpolator</string></property></item>
+        <item><property name="text"><string>NearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="7" column="0">
+       <widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="spinBxRigidBSplineOrder">
+        <property name="toolTip"><string>BSplineInterpolationOrder (rigid, used when interpolator is BSpline)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="8" column="0">
+       <widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="comboBoxRigidResampleInterpolator">
+        <property name="toolTip"><string>ResampleInterpolator used for final resampling (rigid)</string></property>
+        <item><property name="text"><string>FinalLinearInterpolator</string></property></item>
+        <item><property name="text"><string>FinalBSplineInterpolator</string></property></item>
+        <item><property name="text"><string>FinalNearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="9" column="0">
+       <widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QSpinBox" name="spinBxRigidFinalBSplineOrder">
+        <property name="toolTip"><string>FinalBSplineInterpolationOrder (rigid): 3=accurate, 1=linear, 0=nearest-neighbor/binary masks</string></property>
+        <property name="minimum"><number>0</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+     </layout>
     </widget>
    </item>
+
+   <!-- ===== Deformable Registration Group ===== -->
    <item>
-    <widget class="QCheckBox" name="chkBxUseDeformableRegistration">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Deformable registration</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
+    <widget class="QGroupBox" name="grpDeformable">
+     <property name="title"><string>Deformable Registration</string></property>
+     <property name="checkable"><bool>true</bool></property>
+     <property name="checked"><bool>true</bool></property>
+     <layout class="QFormLayout" name="formDeformable">
+      <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
+
+      <item row="0" column="0">
+       <widget class="QLabel"><property name="text"><string>Metric:</string></property></widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBoxDeformableMetric">
+        <property name="toolTip"><string>Similarity metric for the deformable stage</string></property>
+        <item><property name="text"><string>AdvancedMattesMutualInformation</string></property></item>
+        <item><property name="text"><string>AdvancedNormalizedCorrelation</string></property></item>
+        <item><property name="text"><string>AdvancedMeanSquares</string></property></item>
+       </widget>
+      </item>
+
+      <item row="1" column="0">
+       <widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="spinBxDeformableResolutions">
+        <property name="toolTip"><string>NumberOfResolutions (deformable)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>8</number></property>
+        <property name="value"><number>4</number></property>
+       </widget>
+      </item>
+
+      <item row="2" column="0">
+       <widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="spinBxIterations">
+        <property name="toolTip"><string>MaximumNumberOfIterations (deformable)</string></property>
+        <property name="minimum"><number>100</number></property>
+        <property name="maximum"><number>10000</number></property>
+        <property name="singleStep"><number>50</number></property>
+        <property name="value"><number>750</number></property>
+       </widget>
+      </item>
+
+      <item row="3" column="0">
+       <widget class="QLabel"><property name="text"><string>Grid spacing:</string></property></widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QDoubleSpinBox" name="spinBoxFinalGridSpacing">
+        <property name="toolTip"><string>FinalGridSpacingInPhysicalUnits (mm)</string></property>
+        <property name="suffix"><string> mm</string></property>
+        <property name="decimals"><number>2</number></property>
+        <property name="minimum"><double>0.01</double></property>
+        <property name="maximum"><double>100000.0</double></property>
+        <property name="singleStep"><double>1.0</double></property>
+        <property name="value"><double>35.0</double></property>
+       </widget>
+      </item>
+
+      <item row="4" column="0">
+       <widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="spinBxDeformableHistBins">
+        <property name="toolTip"><string>NumberOfHistogramBins (deformable)</string></property>
+        <property name="minimum"><number>8</number></property>
+        <property name="maximum"><number>256</number></property>
+        <property name="singleStep"><number>8</number></property>
+        <property name="value"><number>32</number></property>
+       </widget>
+      </item>
+
+      <item row="5" column="0">
+       <widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="spinBxDeformableSpatialSamples">
+        <property name="toolTip"><string>NumberOfSpatialSamples (deformable)</string></property>
+        <property name="minimum"><number>1000</number></property>
+        <property name="maximum"><number>200000</number></property>
+        <property name="singleStep"><number>1000</number></property>
+        <property name="value"><number>25000</number></property>
+       </widget>
+      </item>
+
+      <item row="6" column="0">
+       <widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboBoxDeformableInterpolator">
+        <property name="toolTip"><string>Interpolator used during optimization (deformable)</string></property>
+        <item><property name="text"><string>LinearInterpolator</string></property></item>
+        <item><property name="text"><string>BSplineInterpolator</string></property></item>
+        <item><property name="text"><string>NearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="7" column="0">
+       <widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QSpinBox" name="spinBxDeformableBSplineOrder">
+        <property name="toolTip"><string>BSplineInterpolationOrder (deformable, used when interpolator is BSpline)</string></property>
+        <property name="minimum"><number>1</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+      <item row="8" column="0">
+       <widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QComboBox" name="comboBoxDeformableResampleInterpolator">
+        <property name="toolTip"><string>ResampleInterpolator used for final resampling (deformable)</string></property>
+        <item><property name="text"><string>FinalBSplineInterpolator</string></property></item>
+        <item><property name="text"><string>FinalLinearInterpolator</string></property></item>
+        <item><property name="text"><string>FinalNearestNeighborInterpolator</string></property></item>
+       </widget>
+      </item>
+
+      <item row="9" column="0">
+       <widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QSpinBox" name="spinBxDeformableFinalBSplineOrder">
+        <property name="toolTip"><string>FinalBSplineInterpolationOrder (deformable): 3=accurate, 1=linear, 0=nearest-neighbor/binary masks</string></property>
+        <property name="minimum"><number>0</number></property>
+        <property name="maximum"><number>5</number></property>
+        <property name="value"><number>3</number></property>
+       </widget>
+      </item>
+
+     </layout>
     </widget>
    </item>
+
+   <!-- ===== Start Registration ===== -->
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>FinalGridSpacingInPhysicalUnits</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QDoubleSpinBox" name="spinBoxFinalGridSpacing">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>150</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="suffix">
-            <string>mm</string>
-           </property>
-           <property name="decimals">
-            <number>2</number>
-           </property>
-           <property name="minimum">
-            <double>0.010000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>100000.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.200000000000000</double>
-           </property>
-           <property name="value">
-            <double>35.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>MaximumNumberOfIterations</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QSpinBox" name="spinBxIterations">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>150</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="minimum">
-            <number>100</number>
-           </property>
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-           <property name="value">
-            <number>750</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="hLayoutStart">
      <item>
       <widget class="QPushButton" name="btnEditParameterFiles">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy>
        </property>
-       <property name="text">
-        <string>Edit parameter files</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>:/org_mitk_icons/icons/tango/scalable/actions/go-next.svg</normaloff>:/org_mitk_icons/icons/tango/scalable/actions/go-next.svg</iconset>
-       </property>
+       <property name="text"><string>Advanced...</string></property>
+       <property name="toolTip"><string>Open the raw elastix parameter file editor</string></property>
       </widget>
      </item>
      <item>
       <widget class="QCommandLinkButton" name="btnStartRegistration">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy>
        </property>
-       <property name="text">
-        <string>Start</string>
-       </property>
+       <property name="text"><string>Start Registration</string></property>
+       <property name="toolTip"><string>Run elastix with the current settings for all registered image pairs</string></property>
       </widget>
      </item>
     </layout>
    </item>
+
+   <!-- ===== Status label ===== -->
+   <item>
+    <widget class="QLabel" name="labelStatus">
+     <property name="text"><string/></property>
+     <property name="wordWrap"><bool>true</bool></property>
+    </widget>
+   </item>
+
+   <!-- ===== Tools Group ===== -->
    <item>
     <widget class="QGroupBox" name="groupBox_4">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Controls</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <item>
-       <widget class="QCheckBox" name="chkBxInvertIntensities">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Invert image intensities for registration</string>
-        </property>
-       </widget>
-      </item>
+     <property name="title"><string>Tools</string></property>
+     <layout class="QVBoxLayout" name="vLayoutTools">
       <item>
        <widget class="QCheckBox" name="chkBxReinitOnSelectionChanged">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>Re-init on selection changed</string>
-        </property>
+        <property name="text"><string>Re-init on selection changed</string></property>
+        <property name="toolTip"><string>Automatically re-initialise the viewer when the data-manager selection changes</string></property>
        </widget>
       </item>
       <item>
        <widget class="QCommandLinkButton" name="btnOpenPontSetInteractionView">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy>
         </property>
-        <property name="text">
-         <string>Open point set interaction view</string>
-        </property>
+        <property name="text"><string>Open point set interaction view</string></property>
+        <property name="toolTip"><string>Open the MITK Point Set Interaction view to place corresponding landmark pairs</string></property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
-   <item>
-    <widget class="QLabel" name="labelStatus">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
+
+   <item><widget class="Line" name="line_exp"><property name="orientation"><enum>Qt::Horizontal</enum></property></widget></item>
+
+   <!-- ===== Experimental: 2D → 3D Volume ===== -->
    <item>
     <widget class="QLabel" name="label">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Experimental&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="textFormat">
-      <enum>Qt::RichText</enum>
-     </property>
+     <property name="text"><string>&lt;html&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Experimental&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string></property>
+     <property name="textFormat"><enum>Qt::RichText</enum></property>
     </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>2D Images to 3D Volume</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="title"><string>2D Images to 3D Volume</string></property>
+     <layout class="QVBoxLayout" name="vLayoutVolume">
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Spacing z-axis</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QDoubleSpinBox" name="spinBoxZSpacing">
-        <property name="suffix">
-         <string> μm</string>
-        </property>
-        <property name="decimals">
-         <number>2</number>
-        </property>
-        <property name="maximum">
-         <double>10000.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>10.000000000000000</double>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="hLayoutZSpacing">
+        <item><widget class="QLabel" name="label_2"><property name="text"><string>Z-spacing:</string></property></widget></item>
+        <item>
+         <widget class="QDoubleSpinBox" name="spinBoxZSpacing">
+          <property name="toolTip"><string>Physical spacing between consecutive 2D slices in the output volume (µm)</string></property>
+          <property name="suffix"><string> μm</string></property>
+          <property name="decimals"><number>2</number></property>
+          <property name="maximum"><double>10000.0</double></property>
+          <property name="value"><double>10.0</double></property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QCommandLinkButton" name="btnStartRecon">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum"><horstretch>0</horstretch><verstretch>0</verstretch></sizepolicy>
         </property>
-        <property name="text">
-         <string>Start</string>
-        </property>
+        <property name="text"><string>Build Volume</string></property>
+        <property name="toolTip"><string>Stack the registered 2D images into a single 3D volume using the specified Z-spacing</string></property>
        </widget>
       </item>
      </layout>
     </widget>
    </item>
+
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+    </spacer>
+   </item>
+
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

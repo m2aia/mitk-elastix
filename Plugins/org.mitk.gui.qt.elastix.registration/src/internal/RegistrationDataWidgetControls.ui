@@ -29,15 +29,21 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QmitkSingleNodeSelectionWidget" name="imageSelection" native="true"/>
+      <widget class="QmitkSingleNodeSelectionWidget" name="imageSelection" native="true">
+       <property name="toolTip"><string>Select the image to register (fixed or moving)</string></property>
+      </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="index"/>
+      <widget class="QSpinBox" name="index">
+       <property name="toolTip"><string>Channel index to use from a multi-channel image (0-based)</string></property>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
-    <widget class="QmitkSingleNodeSelectionWidget" name="imageMaskSelection" native="true"/>
+    <widget class="QmitkSingleNodeSelectionWidget" name="imageMaskSelection" native="true">
+     <property name="toolTip"><string>Optional binary mask — only voxels inside the mask are used by elastix</string></property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="referencePointSetData">
@@ -49,13 +55,16 @@
          <height>0</height>
         </size>
        </property>
+       <property name="toolTip"><string>Add a landmark point set for this image</string></property>
        <property name="text">
         <string>+</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QmitkSingleNodeSelectionWidget" name="pointSetSelection" native="true"/>
+      <widget class="QmitkSingleNodeSelectionWidget" name="pointSetSelection" native="true">
+       <property name="toolTip"><string>Corresponding landmark point set used for point-based registration guidance</string></property>
+      </widget>
      </item>
     </layout>
    </item>
