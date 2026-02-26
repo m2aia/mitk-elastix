@@ -26,6 +26,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <mitkNodePredicateAnd.h>
 #include <mitkNodePredicateDataType.h>
 #include <mitkNodePredicateNot.h>
+#include <mitkNodePredicateOr.h>
 #include <mitkNodePredicateProperty.h>
 #include <mitkPointSet.h>
 
@@ -41,7 +42,8 @@ RegistrationDataWidget::RegistrationDataWidget(QWidget *parent, mitk::DataStorag
 
   // configure image selection
   m_Controls.imageSelection->SetNodePredicate(
-    mitk::NodePredicateAnd::New(mitk::TNodePredicateDataType<mitk::Image>::New(),
+    mitk::NodePredicateAnd::New(mitk::NodePredicateOr::New(mitk::TNodePredicateDataType<mitk::Image>::New(),
+                                                            mitk::TNodePredicateDataType<mitk::MultiLabelSegmentation>::New()),
                                 mitk::NodePredicateNot::New(mitk::NodePredicateProperty::New("helper object"))));
   m_Controls.imageSelection->SetSelectionIsOptional(true);
   m_Controls.imageSelection->SetEmptyInfo(QString("Select image"));
@@ -123,16 +125,21 @@ void RegistrationDataWidget::OnSaveTransformations()
 void RegistrationDataWidget::OnApplyTransformations()
 {
   UpdateRegistrationDataFromUI();
-  m2::ElxRegistrationHelper warpingHelper;
   const auto node = m_Controls.imageSelection->GetSelectedNode();
-  const auto image = dynamic_cast<const mitk::Image *>(node->GetData());
+  
+  
+  
+  m2::ElxRegistrationHelper warpingHelper;
   warpingHelper.SetTransformations(m_RegistrationData->m_Transformations);
   mitk::Image::Pointer result;
-  if(dynamic_cast<const mitk::MultiLabelSegmentation *>(image)){
-    result = warpingHelper.WarpImage(image, "short");
-  }else{
+  
+  if(auto image = dynamic_cast<const mitk::Image *>(node->GetData())){
     result = warpingHelper.WarpImage(image);
   }
+  else if(auto mlSeg = dynamic_cast<const mitk::MultiLabelSegmentation *>(node->GetData())){
+    result = warpingHelper.WarpImage(mlSeg->GetGroupImage(0) , "short");
+  }
+
   auto newNode = mitk::DataNode::New();
   newNode->SetData(result);
   newNode->SetName(node->GetName() + "(warped)");

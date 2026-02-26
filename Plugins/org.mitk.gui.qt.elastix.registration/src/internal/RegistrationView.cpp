@@ -62,9 +62,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <m2ElxDefaultParameterFiles.h>
 #include <m2ElxRegistrationHelper.h>
 #include <m2ElxUtil.h>
-#include <ui_ParameterFileEditorDialog.h>
 #include <ui_ComponentSelectionDialog.h>
-#include <m2ElxDefaultParameterFiles.h>
 
 const std::string RegistrationView::VIEW_ID = "org.mitk.views.elastix.registration";
 
@@ -82,30 +80,8 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
   m_FixedEntity->m_Controls.imageSelection->SetAutoSelectNewNodes(true);
   m_Controls.tabWidget->addTab(m_FixedEntity, "Fixed");
 
-
   connect(m_Controls.btnStartRecon, SIGNAL(clicked()), this, SLOT(OnPostProcessReconstruction()));
-
-  // connect(
-  //   m_Controls.registrationStrategy, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](auto currentIndex)
-  //   {
-  //     m_ParameterFileEditorControls.rigidText->setText(m_ParameterFiles[currentIndex][0].c_str());
-  //     m_ParameterFileEditorControls.deformableText->setText(m_ParameterFiles[currentIndex][1].c_str());
-
-  //     switch (currentIndex)
-  //     {
-  //       case 0:
-  //         m_Controls.label->setText("SliceImageData [NxM] or [NxMx1], MultiModal, MultiMetric, Rigid + Deformable");
-  //         break;
-  //       case 1:
-  //         m_Controls.label->setText("VolumeImageData [NxMxD], MultiModal, MultiMetric, Rigid+Deformable");
-  //         break;
-  //     }
-  //   });
-
-  // m_Controls.registrationStrategy->setCurrentIndex(1);
-
   connect(m_Controls.btnStartRegistration, SIGNAL(clicked()), this, SLOT(OnStartRegistration()));
-
   connect(m_Controls.btnAddModality, SIGNAL(clicked()), this, SLOT(OnAddRegistrationData()));
   connect(m_Controls.btnSelectChannels, SIGNAL(clicked()), this, SLOT(OnSelectChannels()));
 
@@ -123,35 +99,6 @@ void RegistrationView::CreateQtPartControl(QWidget *parent)
       BERRY_ERROR << "Error: " << e.what() << std::endl;
     }
   });
-
-
-  m_ParameterFiles = {m2::Elx::Rigid(), m2::Elx::Deformable()};
-
-  m_ParameterFileEditor = new QDialog(parent);
-  m_ParameterFileEditorControls.setupUi(m_ParameterFileEditor);
-
-  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::RestoreDefaults),
-          &QAbstractButton::clicked,
-          this,
-          [this]() {
-            m_ParameterFileEditorControls.rigidText->setText(m2::Elx::Rigid().c_str());
-            m_ParameterFileEditorControls.deformableText->setText(m2::Elx::Deformable().c_str());
-          });
-
-  connect(m_ParameterFileEditorControls.buttonBox->button(QDialogButtonBox::StandardButton::Close),
-          &QAbstractButton::clicked,
-          this,
-          [this]() {
-            m_ParameterFiles = {m_ParameterFileEditorControls.rigidText->toPlainText().toStdString(),
-                                m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
-          });
-
-  connect(m_Controls.btnEditParameterFiles, &QPushButton::clicked, this, [this]() {
-    m_ParameterFileEditor->exec();
-    m_ParameterFiles = {m_ParameterFileEditorControls.rigidText->toPlainText().toStdString(),
-                        m_ParameterFileEditorControls.deformableText->toPlainText().toStdString()};
-  });
-
 }
 
 std::vector<std::string> splitString(const std::string& str, char delimiter = ';') {
@@ -466,16 +413,6 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
   {
     std::vector<std::string> parameterFiles = m_ParameterFiles;
 
-    if (!m_Controls.grpDeformable->isChecked() || parameterFiles.back().empty())
-    {
-      parameterFiles.pop_back();
-    }
-
-    if (!m_Controls.grpRigid->isChecked() && !parameterFiles.empty() && parameterFiles.front() == m_ParameterFiles[0])
-    {
-      parameterFiles.erase(parameterFiles.begin());
-    }
-
     auto helper = std::make_shared<m2::ElxRegistrationHelper>();
 
     mitk::ProgressBar::GetInstance()->Progress(1);
@@ -565,90 +502,26 @@ void RegistrationView::OnStartRegistration()
     }
   }
 
-  // Use deformable transformations
   std::setlocale(LC_NUMERIC, "en_US.UTF-8");
 
-  // --- Rigid registration parameters ---
+  // Build parameter files from widget (already patched + filtered by enabled stages)
+  m_ParameterFiles = m_Controls.paramWidget->GetParameters();
+
+  // --- Patch image dimensionality into every stage ---
+  for (auto &pf : m_ParameterFiles)
   {
-    const auto rigidTransform = m_Controls.comboBoxRigidTransform->currentText().toStdString();
-    const auto rigidMetric = m_Controls.comboBoxRigidMetric->currentText().toStdString();
-    const auto rigidHistBins = m_Controls.spinBxRigidHistBins->value();
-    const auto rigidResolutions = m_Controls.spinBxRigidResolutions->value();
-    const auto rigidIterations = m_Controls.spinBxRigidIterations->value();
-    const auto rigidSpatialSamples = m_Controls.spinBxRigidSpatialSamples->value();
-
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Transform", "\"" + rigidTransform + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Metric", "\"" + rigidMetric + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfHistogramBins", std::to_string(rigidHistBins));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfResolutions", std::to_string(rigidResolutions));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "MaximumNumberOfIterations", std::to_string(rigidIterations));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "NumberOfSpatialSamples", std::to_string(rigidSpatialSamples));
-
-    const auto rigidInterpolator = m_Controls.comboBoxRigidInterpolator->currentText().toStdString();
-    const auto rigidBSplineOrder = m_Controls.spinBxRigidBSplineOrder->value();
-    const auto rigidResampleInterpolator = m_Controls.comboBoxRigidResampleInterpolator->currentText().toStdString();
-    const auto rigidFinalBSplineOrder = m_Controls.spinBxRigidFinalBSplineOrder->value();
-
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "Interpolator", "\"" + rigidInterpolator + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "BSplineInterpolationOrder", std::to_string(rigidBSplineOrder));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "ResampleInterpolator", "\"" + rigidResampleInterpolator + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "FinalBSplineInterpolationOrder", std::to_string(rigidFinalBSplineOrder));
+    if (maxDimZ > 1)
+    {
+      m2::ElxUtil::ReplaceParameter(pf, "FixedImageDimension", "3");
+      m2::ElxUtil::ReplaceParameter(pf, "MovingImageDimension", "3");
+    }
+    else
+    {
+      m2::ElxUtil::ReplaceParameter(pf, "FixedImageDimension", "2");
+      m2::ElxUtil::ReplaceParameter(pf, "MovingImageDimension", "2");
+    }
   }
 
-  // --- Deformable registration parameters ---
-  {
-    const auto deformableMetric = m_Controls.comboBoxDeformableMetric->currentText().toStdString();
-    const auto deformableResolutions = m_Controls.spinBxDeformableResolutions->value();
-    const auto deformableIterations = m_Controls.spinBxIterations->value();
-    const auto gridSpacing = m_Controls.spinBoxFinalGridSpacing->value();
-    const auto deformableHistBins = m_Controls.spinBxDeformableHistBins->value();
-    const auto deformableSpatialSamples = m_Controls.spinBxDeformableSpatialSamples->value();
-
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "Metric", "\"" + deformableMetric + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfResolutions", std::to_string(deformableResolutions));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MaximumNumberOfIterations", std::to_string(deformableIterations));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalGridSpacingInPhysicalUnits", std::to_string(gridSpacing));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfHistogramBins", std::to_string(deformableHistBins));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "NumberOfSpatialSamples", std::to_string(deformableSpatialSamples));
-
-    const auto deformableInterpolator = m_Controls.comboBoxDeformableInterpolator->currentText().toStdString();
-    const auto deformableBSplineOrder = m_Controls.spinBxDeformableBSplineOrder->value();
-    const auto deformableResampleInterpolator = m_Controls.comboBoxDeformableResampleInterpolator->currentText().toStdString();
-    const auto deformableFinalBSplineOrder = m_Controls.spinBxDeformableFinalBSplineOrder->value();
-
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "Interpolator", "\"" + deformableInterpolator + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "BSplineInterpolationOrder", std::to_string(deformableBSplineOrder));
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "ResampleInterpolator", "\"" + deformableResampleInterpolator + "\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FinalBSplineInterpolationOrder", std::to_string(deformableFinalBSplineOrder));
-  }
-
-  // --- Initial alignment ---
-  auto text = m_Controls.comboBox->currentText();
-  if(text == "None"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"false\"");
-  }else if(text == "Geometrical Center"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"true\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "\"GeometricalCenter\"");
-  }else if(text == "Center of Gravity"){
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitialization", "\"true\"");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "AutomaticTransformInitializationMethod", "\"CenterOfGravity\"");
-  }
-  
-
-  if (maxDimZ > 1)
-  {
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "FixedImageDimension", "3");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "MovingImageDimension", "3");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FixedImageDimension", "3");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MovingImageDimension", "3");
-  }
-  else
-  {
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "FixedImageDimension", "2");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[0], "MovingImageDimension", "2");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "FixedImageDimension", "2");
-    m2::ElxUtil::ReplaceParameter(m_ParameterFiles[1], "MovingImageDimension", "2");
-  }
   // m_RegistrationJob = std::make_shared<QFutureWatcher<void>>();
   // m_RegistrationJob->setFuture(QtConcurrent::run([&]() {
     if (m_Controls.rbAllToOne->isChecked())

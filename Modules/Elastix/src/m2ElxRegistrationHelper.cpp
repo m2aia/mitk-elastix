@@ -598,7 +598,7 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::GetDeformationField() const
 
 mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inputData,
                                                           const std::string &pixelType,
-                                                          const unsigned char &interpolationOrder) const
+                                                          const unsigned char &) const
 {
   auto data = ConvertForElastixProcessing(inputData);
   
@@ -690,12 +690,7 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
       {
         ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalNearestNeighborInterpolator\"");
       }
-      else
-      {
-        ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalBSplineInterpolatorFloat\"");
-        ElxUtil::ReplaceParameter(T, "FinalBSplineInterpolationOrder", std::to_string(interpolationOrder));
-      }
-
+  
       if (i == 0)
       {
         ElxUtil::ReplaceParameter(T, "InitialTransformParametersFileName", R"("NoInitialTransform")");

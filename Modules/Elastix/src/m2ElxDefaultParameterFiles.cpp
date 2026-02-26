@@ -75,7 +75,7 @@
 
 // ************* Interpolation and Resampling ****************
 
-(BSplineInterpolationOrder 3)
+// (BSplineInterpolationOrder 3)
 
 // Order of B-Spline interpolation used for applying the final
 // deformation.
@@ -83,7 +83,7 @@
 // 1 gives worse accuracy (linear interpolation)
 // 0 gives worst accuracy, but is appropriate for binary images
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
-(FinalBSplineInterpolationOrder 3)
+// (FinalBSplineInterpolationOrder 3)
 
 // Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
@@ -120,10 +120,10 @@ std::string m2::Elx::Deformable()
 
 (Registration "MultiResolutionRegistration")
 (Interpolator "LinearInterpolator")
-(ResampleInterpolator "FinalBSplineInterpolator")
+// (ResampleInterpolator "FinalBSplineInterpolator")
 (Resampler "DefaultResampler")
 (Optimizer "AdaptiveStochasticGradientDescent")
-(Transform "RecursiveBSplineTransform")
+// (Transform "RecursiveBSplineTransform")
 (Metric "AdvancedMattesMutualInformation")
 (Metric0Weight 1.00)
 (Metric1Weight 0.80)
@@ -168,7 +168,7 @@ std::string m2::Elx::Deformable()
 
 // ************* Interpolation and Resampling ****************
 
-(BSplineInterpolationOrder 3)
+// (BSplineInterpolationOrder 3)
 
 // Order of B-Spline interpolation used for applying the final
 // deformation.
@@ -176,7 +176,7 @@ std::string m2::Elx::Deformable()
 // 1 gives worse accuracy (linear interpolation)
 // 0 gives worst accuracy, but is appropriate for binary images
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
-(FinalBSplineInterpolationOrder 3)
+// (FinalBSplineInterpolationOrder 3)
 
 // Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)

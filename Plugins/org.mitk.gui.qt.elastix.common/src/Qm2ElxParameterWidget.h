@@ -102,6 +102,54 @@ public:
 
     connect(m_Controls.btnAdvanced, &QPushButton::clicked,
             this, [this]() { m_ParamFileEditor->exec(); });
+
+    // ----------------------------------------------------------------
+    // Enable/disable BSpline order spinners based on interpolator choice
+    // ----------------------------------------------------------------
+    auto syncBSpline = [](QComboBox *combo, QSpinBox *spin, const QString &bsplineText)
+    {
+      const bool isBSpline = combo->currentText() == bsplineText;
+      spin->setEnabled(isBSpline);
+    };
+
+    // Rigid – optimization interpolator
+    connect(m_Controls.comboRigidInterpolator, &QComboBox::currentTextChanged,
+            this, [this, syncBSpline](const QString &) {
+              syncBSpline(m_Controls.comboRigidInterpolator,
+                          m_Controls.spinRigidBSplineOrder,
+                          "BSplineInterpolator");
+            });
+    // Rigid – resample interpolator
+    connect(m_Controls.comboRigidResampleInterpolator, &QComboBox::currentTextChanged,
+            this, [this, syncBSpline](const QString &) {
+              syncBSpline(m_Controls.comboRigidResampleInterpolator,
+                          m_Controls.spinRigidFinalBSplineOrder,
+                          "FinalBSplineInterpolator");
+            });
+    // Deformable – optimization interpolator
+    connect(m_Controls.comboDeformableInterpolator, &QComboBox::currentTextChanged,
+            this, [this, syncBSpline](const QString &) {
+              syncBSpline(m_Controls.comboDeformableInterpolator,
+                          m_Controls.spinDeformableBSplineOrder,
+                          "BSplineInterpolator");
+            });
+    // Deformable – resample interpolator
+    connect(m_Controls.comboDeformableResampleInterpolator, &QComboBox::currentTextChanged,
+            this, [this, syncBSpline](const QString &) {
+              syncBSpline(m_Controls.comboDeformableResampleInterpolator,
+                          m_Controls.spinDeformableFinalBSplineOrder,
+                          "FinalBSplineInterpolator");
+            });
+
+    // Set initial enabled state to match current combo selection
+    syncBSpline(m_Controls.comboRigidInterpolator,
+                m_Controls.spinRigidBSplineOrder,       "BSplineInterpolator");
+    syncBSpline(m_Controls.comboRigidResampleInterpolator,
+                m_Controls.spinRigidFinalBSplineOrder,  "FinalBSplineInterpolator");
+    syncBSpline(m_Controls.comboDeformableInterpolator,
+                m_Controls.spinDeformableBSplineOrder,  "BSplineInterpolator");
+    syncBSpline(m_Controls.comboDeformableResampleInterpolator,
+                m_Controls.spinDeformableFinalBSplineOrder, "FinalBSplineInterpolator");
   }
 
   ~Qm2ElxParameterWidget() override = default;
@@ -142,12 +190,14 @@ public:
         std::to_string(m_Controls.spinRigidSpatialSamples->value()));
       m2::ElxUtil::ReplaceParameter(rigid, "Interpolator",
         "\"" + m_Controls.comboRigidInterpolator->currentText().toStdString() + "\"");
-      m2::ElxUtil::ReplaceParameter(rigid, "BSplineInterpolationOrder",
-        std::to_string(m_Controls.spinRigidBSplineOrder->value()));
+      if (m_Controls.comboRigidInterpolator->currentText() == "BSplineInterpolator")
+        m2::ElxUtil::ReplaceParameter(rigid, "BSplineInterpolationOrder",
+          std::to_string(m_Controls.spinRigidBSplineOrder->value()));
       m2::ElxUtil::ReplaceParameter(rigid, "ResampleInterpolator",
         "\"" + m_Controls.comboRigidResampleInterpolator->currentText().toStdString() + "\"");
-      m2::ElxUtil::ReplaceParameter(rigid, "FinalBSplineInterpolationOrder",
-        std::to_string(m_Controls.spinRigidFinalBSplineOrder->value()));
+      if (m_Controls.comboRigidResampleInterpolator->currentText() == "FinalBSplineInterpolator")
+        m2::ElxUtil::ReplaceParameter(rigid, "FinalBSplineInterpolationOrder",
+          std::to_string(m_Controls.spinRigidFinalBSplineOrder->value()));
 
       // Initial alignment
       const auto alignText = m_Controls.comboInitialAlignment->currentText();
@@ -186,12 +236,14 @@ public:
         std::to_string(m_Controls.spinDeformableSpatialSamples->value()));
       m2::ElxUtil::ReplaceParameter(deformable, "Interpolator",
         "\"" + m_Controls.comboDeformableInterpolator->currentText().toStdString() + "\"");
-      m2::ElxUtil::ReplaceParameter(deformable, "BSplineInterpolationOrder",
-        std::to_string(m_Controls.spinDeformableBSplineOrder->value()));
+      if (m_Controls.comboDeformableInterpolator->currentText() == "BSplineInterpolator")
+        m2::ElxUtil::ReplaceParameter(deformable, "BSplineInterpolationOrder",
+          std::to_string(m_Controls.spinDeformableBSplineOrder->value()));
       m2::ElxUtil::ReplaceParameter(deformable, "ResampleInterpolator",
         "\"" + m_Controls.comboDeformableResampleInterpolator->currentText().toStdString() + "\"");
-      m2::ElxUtil::ReplaceParameter(deformable, "FinalBSplineInterpolationOrder",
-        std::to_string(m_Controls.spinDeformableFinalBSplineOrder->value()));
+      if (m_Controls.comboDeformableResampleInterpolator->currentText() == "FinalBSplineInterpolator")
+        m2::ElxUtil::ReplaceParameter(deformable, "FinalBSplineInterpolationOrder",
+          std::to_string(m_Controls.spinDeformableFinalBSplineOrder->value()));
 
       params.push_back(std::move(deformable));
     }

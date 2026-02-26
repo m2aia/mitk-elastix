@@ -25,7 +25,7 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <berryISelectionListener.h>
 #include <map>
 #include <mitkPointSet.h>
-#include <ui_ParameterFileEditorDialog.h>
+#include <Qm2ElxParameterWidget.h>
 
 class QmitkSingleNodeSelectionWidget;
 class RegistrationDataWidget;
@@ -66,8 +66,6 @@ protected:
   Ui::RegistrationViewControls m_Controls;
   RegistrationDataWidget *m_FixedEntity;
 
-  Ui::elxParameterFileEditor m_ParameterFileEditorControls;
-  QDialog *m_ParameterFileEditor;
   std::vector<std::string> m_ParameterFiles;
 
   void Registration(RegistrationDataWidget *fixed, RegistrationDataWidget *moving);
