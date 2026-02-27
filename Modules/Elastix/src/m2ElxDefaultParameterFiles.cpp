@@ -102,7 +102,7 @@ std::string m2::Elx::Deformable()
 // Deformable registration parameter file
 // NOTE: The following parameters are overridden at runtime
 // by the Registration UI controls:
-//   Metric, NumberOfHistogramBins,
+//   Transform, Metric, NumberOfHistogramBins,
 //   NumberOfResolutions, MaximumNumberOfIterations,
 //   FinalGridSpacingInPhysicalUnits, NumberOfSpatialSamples,
 //   Interpolator, BSplineInterpolationOrder,
@@ -123,7 +123,7 @@ std::string m2::Elx::Deformable()
 // (ResampleInterpolator "FinalBSplineInterpolator")
 (Resampler "DefaultResampler")
 (Optimizer "AdaptiveStochasticGradientDescent")
-// (Transform "RecursiveBSplineTransform")
+(Transform "RecursiveBSplineTransform")
 (Metric "AdvancedMattesMutualInformation")
 (Metric0Weight 1.00)
 (Metric1Weight 0.80)

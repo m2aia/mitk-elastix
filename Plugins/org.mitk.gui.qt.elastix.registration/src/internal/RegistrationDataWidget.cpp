@@ -140,8 +140,11 @@ void RegistrationDataWidget::OnApplyTransformations()
     result = warpingHelper.WarpImage(mlSeg->GetGroupImage(0) , "short");
   }
 
+  auto newMlSeg = mitk::MultiLabelSegmentation::New();
+  newMlSeg->InitializeByLabeledImage(result);
+
   auto newNode = mitk::DataNode::New();
-  newNode->SetData(result);
+  newNode->SetData(newMlSeg);
   newNode->SetName(node->GetName() + "(warped)");
   m_DataStorage->Add(newNode, node);
 }

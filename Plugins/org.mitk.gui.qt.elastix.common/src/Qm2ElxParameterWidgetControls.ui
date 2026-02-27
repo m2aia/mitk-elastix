@@ -162,8 +162,16 @@
      <layout class="QFormLayout" name="formDeformable">
       <property name="fieldGrowthPolicy"><enum>QFormLayout::AllNonFixedFieldsGrow</enum></property>
 
-      <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Metric:</string></property></widget></item>
+      <item row="0" column="0"><widget class="QLabel"><property name="text"><string>Transform:</string></property></widget></item>
       <item row="0" column="1">
+       <widget class="QComboBox" name="comboDeformableTransform">
+        <property name="toolTip"><string>Elastix transform model for the deformable stage</string></property>
+        <item><property name="text"><string>RecursiveBSplineTransform</string></property></item>
+       </widget>
+      </item>
+
+      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Metric:</string></property></widget></item>
+      <item row="1" column="1">
        <widget class="QComboBox" name="comboDeformableMetric">
         <property name="toolTip"><string>Similarity metric for the deformable stage</string></property>
         <item><property name="text"><string>AdvancedMattesMutualInformation</string></property></item>
@@ -172,8 +180,8 @@
        </widget>
       </item>
 
-      <item row="1" column="0"><widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget></item>
-      <item row="1" column="1">
+      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Resolutions:</string></property></widget></item>
+      <item row="2" column="1">
        <widget class="QSpinBox" name="spinDeformableResolutions">
         <property name="toolTip"><string>NumberOfResolutions (deformable)</string></property>
         <property name="minimum"><number>1</number></property>
@@ -182,8 +190,8 @@
        </widget>
       </item>
 
-      <item row="2" column="0"><widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget></item>
-      <item row="2" column="1">
+      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Iterations:</string></property></widget></item>
+      <item row="3" column="1">
        <widget class="QSpinBox" name="spinDeformableIterations">
         <property name="toolTip"><string>MaximumNumberOfIterations (deformable)</string></property>
         <property name="minimum"><number>100</number></property>
@@ -193,8 +201,8 @@
        </widget>
       </item>
 
-      <item row="3" column="0"><widget class="QLabel"><property name="text"><string>Grid spacing:</string></property></widget></item>
-      <item row="3" column="1">
+      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Grid spacing:</string></property></widget></item>
+      <item row="4" column="1">
        <widget class="QDoubleSpinBox" name="spinDeformableGridSpacing">
         <property name="toolTip"><string>FinalGridSpacingInPhysicalUnits (mm)</string></property>
         <property name="suffix"><string> mm</string></property>
@@ -206,8 +214,8 @@
        </widget>
       </item>
 
-      <item row="4" column="0"><widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget></item>
-      <item row="4" column="1">
+      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Histogram bins:</string></property></widget></item>
+      <item row="5" column="1">
        <widget class="QSpinBox" name="spinDeformableHistBins">
         <property name="toolTip"><string>NumberOfHistogramBins (deformable)</string></property>
         <property name="minimum"><number>8</number></property>
@@ -217,8 +225,8 @@
        </widget>
       </item>
 
-      <item row="5" column="0"><widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget></item>
-      <item row="5" column="1">
+      <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Spatial samples:</string></property></widget></item>
+      <item row="6" column="1">
        <widget class="QSpinBox" name="spinDeformableSpatialSamples">
         <property name="toolTip"><string>NumberOfSpatialSamples (deformable)</string></property>
         <property name="minimum"><number>1000</number></property>
@@ -228,8 +236,8 @@
        </widget>
       </item>
 
-      <item row="6" column="0"><widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget></item>
-      <item row="6" column="1">
+      <item row="7" column="0"><widget class="QLabel"><property name="text"><string>Interpolator:</string></property></widget></item>
+      <item row="7" column="1">
        <widget class="QComboBox" name="comboDeformableInterpolator">
         <property name="toolTip"><string>Interpolator used during optimization (deformable)</string></property>
         <item><property name="text"><string>LinearInterpolator</string></property></item>
@@ -238,8 +246,8 @@
        </widget>
       </item>
 
-      <item row="7" column="0"><widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget></item>
-      <item row="7" column="1">
+      <item row="8" column="0"><widget class="QLabel"><property name="text"><string>BSpline order:</string></property></widget></item>
+      <item row="8" column="1">
        <widget class="QSpinBox" name="spinDeformableBSplineOrder">
         <property name="toolTip"><string>BSplineInterpolationOrder (deformable, used when interpolator is BSpline)</string></property>
         <property name="minimum"><number>1</number></property>
@@ -248,8 +256,8 @@
        </widget>
       </item>
 
-      <item row="8" column="0"><widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget></item>
-      <item row="8" column="1">
+      <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Resample interpolator:</string></property></widget></item>
+      <item row="9" column="1">
        <widget class="QComboBox" name="comboDeformableResampleInterpolator">
         <property name="toolTip"><string>ResampleInterpolator used for final resampling (deformable)</string></property>
         <item><property name="text"><string>FinalBSplineInterpolator</string></property></item>
@@ -258,8 +266,8 @@
        </widget>
       </item>
 
-      <item row="9" column="0"><widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget></item>
-      <item row="9" column="1">
+      <item row="10" column="0"><widget class="QLabel"><property name="text"><string>Final BSpline order:</string></property></widget></item>
+      <item row="10" column="1">
        <widget class="QSpinBox" name="spinDeformableFinalBSplineOrder">
         <property name="toolTip"><string>FinalBSplineInterpolationOrder (deformable): 3=accurate, 1=linear, 0=nearest-neighbor/binary masks</string></property>
         <property name="minimum"><number>0</number></property>

@@ -222,6 +222,8 @@ public:
     // --- Deformable ---
     if (m_Controls.grpDeformable->isChecked())
     {
+      m2::ElxUtil::ReplaceParameter(deformable, "Transform",
+        "\"" + m_Controls.comboDeformableTransform->currentText().toStdString() + "\"");
       m2::ElxUtil::ReplaceParameter(deformable, "Metric",
         "\"" + m_Controls.comboDeformableMetric->currentText().toStdString() + "\"");
       m2::ElxUtil::ReplaceParameter(deformable, "NumberOfResolutions",
