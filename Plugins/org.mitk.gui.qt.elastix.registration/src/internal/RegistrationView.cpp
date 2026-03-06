@@ -440,41 +440,19 @@ void RegistrationView::Registration(RegistrationDataWidget *fixed, RegistrationD
     auto warpedImage = helper->WarpImage(movingImage);
     moving->SetTransformations(helper->GetTransformation());
 
-    // auto timeString = itksys::SystemTools::GetCurrentDateTime("%H%M");
-    // auto node = mitk::DataNode::New();
-    // node->SetData(warpedImage);
-    // node->SetName(movingImageNode->GetName() + "_warped" + timeString);
-
-    // MITK_INFO << "Attachments: " << moving->m_Attachments.size();
-    // for (const QmitkSingleNodeSelectionWidget *attSel : moving->m_Attachments)
-    // {
-    //   if (auto node = attSel->GetSelectedNode())
-    //   {
-    //     if (auto labelSetImage = dynamic_cast<mitk::LabelSetImage *>(node->GetData()))
-    //     {
-    //       auto wapred = helper->WarpImage(labelSetImage, "short", 1);
-    //       auto resNode = mitk::DataNode::New();
-    //       resNode->SetData(wapred);
-    //       resNode->SetName(node->GetName() + "_warped_mask" + timeString);
-    //       moving->m_ResultAttachments.push_back(resNode);
-    //     }
-    //     else if (auto image = dynamic_cast<mitk::Image *>(node->GetData()))
-    //     {
-    //       auto warped = helper->WarpImage(image, "float", 1);
-    //       auto resNode = mitk::DataNode::New();
-    //       resNode->SetData(warped);
-    //       resNode->SetName(node->GetName() + "_warped_att_" + timeString);
-    //       moving->m_ResultAttachments.push_back(resNode);
-    //     }
-    //   }
-    // }
+    // build timestamp suffix
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::ostringstream tss;
+    tss << std::put_time(&tm, "%Y%m%d_%H%M%S");
+    const std::string timestamp = tss.str();
 
     mitk::DataNode *parentNode = fixedImageNode;
     MITK_INFO << "Add moving image node";
     // auto newNode = moving->m_ResultNode;
     auto newNode = mitk::DataNode::New();
     newNode->SetData(warpedImage);
-    newNode->SetName(moving->GetImageNode()->GetName() + "(warped)");
+    newNode->SetName(moving->GetImageNode()->GetName() + "_warped_" + timestamp);
     this->GetDataStorage()->Add(newNode, parentNode);
     mitk::ProgressBar::GetInstance()->Progress(1);
 

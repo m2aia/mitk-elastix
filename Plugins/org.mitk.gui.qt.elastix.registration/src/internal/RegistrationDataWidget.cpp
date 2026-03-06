@@ -19,6 +19,10 @@ See LICENSE.txt or https://www.github.com/jtfcordes/m2aia for details.
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+
 #include <m2ElxRegistrationHelper.h>
 #include <mitkDataStorage.h>
 #include <mitkImage.h>
@@ -126,27 +130,37 @@ void RegistrationDataWidget::OnApplyTransformations()
 {
   UpdateRegistrationDataFromUI();
   const auto node = m_Controls.imageSelection->GetSelectedNode();
-  
-  
-  
+
+  // build timestamp suffix
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
+  std::ostringstream tss;
+  tss << std::put_time(&tm, "%Y%m%d_%H%M%S");
+  const std::string timestamp = tss.str();
+
   m2::ElxRegistrationHelper warpingHelper;
   warpingHelper.SetTransformations(m_RegistrationData->m_Transformations);
   mitk::Image::Pointer result;
-  
+
   if(auto image = dynamic_cast<const mitk::Image *>(node->GetData())){
     result = warpingHelper.WarpImage(image);
+
+    auto newNode = mitk::DataNode::New();
+    newNode->SetData(result);
+    newNode->SetName(node->GetName() + "_warped_" + timestamp);
+    m_DataStorage->Add(newNode, node);
   }
   else if(auto mlSeg = dynamic_cast<const mitk::MultiLabelSegmentation *>(node->GetData())){
-    result = warpingHelper.WarpImage(mlSeg->GetGroupImage(0) , "short");
+    result = warpingHelper.WarpImage(mlSeg->GetGroupImage(0), "short");
+
+    auto newMlSeg = mitk::MultiLabelSegmentation::New();
+    newMlSeg->InitializeByLabeledImage(result);
+
+    auto newNode = mitk::DataNode::New();
+    newNode->SetData(newMlSeg);
+    newNode->SetName(node->GetName() + "_warped_" + timestamp);
+    m_DataStorage->Add(newNode, node);
   }
-
-  auto newMlSeg = mitk::MultiLabelSegmentation::New();
-  newMlSeg->InitializeByLabeledImage(result);
-
-  auto newNode = mitk::DataNode::New();
-  newNode->SetData(newMlSeg);
-  newNode->SetName(node->GetName() + "(warped)");
-  m_DataStorage->Add(newNode, node);
 }
 
 void RegistrationDataWidget::OnAddPointSet()
