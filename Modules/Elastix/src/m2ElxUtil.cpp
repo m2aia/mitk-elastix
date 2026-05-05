@@ -144,7 +144,8 @@ bool m2::ElxUtil::CheckVersion(std::string executablePath,
  */
 std::string m2::ElxUtil::JoinPath(std::vector<std::string> &&args)
 {
-  return itksys::SystemTools::ConvertToOutputPath(itksys::SystemTools::JoinPath(args));
+
+  return itksys::SystemTools::CollapseFullPath(itksys::SystemTools::JoinPath(args));
 }
 
 
