@@ -1,4 +1,5 @@
 set(SRC_CPP_FILES
+  Qm2ElxParameterWidget.cpp
 )
 
 set(INTERNAL_CPP_FILES
