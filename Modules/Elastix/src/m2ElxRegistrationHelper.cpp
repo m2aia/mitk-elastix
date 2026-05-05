@@ -638,7 +638,9 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
       resampler->SetReferenceImage(itkFixedImage2D);
       resampler->UseReferenceImageOn();
 
-      if (pixelType == "short")
+      if (pixelType == "short" || pixelType == "unsigned_short" || 
+          pixelType == "char" || pixelType == "unsigned_char"  || 
+          pixelType == "int" || pixelType == "unsigned_int")
       {
         resampler->SetInterpolator(itk::NearestNeighborInterpolateImageFunction<ImageType>::New());
       }else{
@@ -686,7 +688,10 @@ mitk::Image::Pointer m2::ElxRegistrationHelper::WarpImage(const mitk::Image *inp
       auto T = m_Transformations[i];
 
       ElxUtil::ReplaceParameter(T, "ResultImagePixelType", "\"" + pixelType + "\"");
-      if (pixelType == "short")
+      MITK_INFO << "Warping image with pixel type [" << pixelType << "]";
+      if (pixelType == "short" || pixelType == "unsigned_short" || 
+          pixelType == "char" || pixelType == "unsigned_char"  || 
+          pixelType == "int" || pixelType == "unsigned_int")
       {
         ElxUtil::ReplaceParameter(T, "ResampleInterpolator", "\"FinalNearestNeighborInterpolator\"");
       }
