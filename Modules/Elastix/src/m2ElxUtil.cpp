@@ -18,7 +18,13 @@ See LICENSE.txt for details.
 #include <mitkException.h>
 #include <Poco/Environment.h>
 #ifdef _WIN32
-#include <filesystem>
+#  include <windows.h>
+#elif defined(__APPLE__)
+#  include <mach-o/dyld.h>
+#  include <climits>
+#else
+#  include <climits>
+#  include <unistd.h>
 #endif
 
 std::string m2::ElxUtil::Executable(const std::string &name, std::string additionalSearchPath)
@@ -32,19 +38,47 @@ std::string m2::ElxUtil::Executable(const std::string &name, std::string additio
 
   const std::string version_regex = name + "[a-z:\\s]+5\\.[0-9]+";
 
-  // Ordered list of directories to try
+  // Ordered list of directories to try:
+  // 1. additionalSearchPath (caller override)
+  // 2. Directory of the running executable (works for installed packages)
+  // 3. Compile-time Elastix_DIR from m2ElxConfig.h (superbuild / dev build)
+  // 4. ELASTIX_PATH environment variable
+  // 5. /opt/elastix/bin (Unix fallback)
   std::vector<std::string> searchDirs;
 
   if (!additionalSearchPath.empty())
     searchDirs.push_back(additionalSearchPath);
 
-  const char *elastixPath = std::getenv("ELASTIX_PATH");
-  if (elastixPath && *elastixPath)
-    searchDirs.push_back(elastixPath);
+  // Determine the running executable's directory so that a co-installed
+  // elastix (placed in the same bin/ by the installer) is found first.
+  {
+    std::string execDir;
+#if defined(_WIN32)
+    char buf[MAX_PATH] = {};
+    if (GetModuleFileNameA(nullptr, buf, MAX_PATH))
+      execDir = itksys::SystemTools::GetFilenamePath(std::string(buf));
+#elif defined(__APPLE__)
+    char buf[PATH_MAX] = {};
+    uint32_t sz = sizeof(buf);
+    if (_NSGetExecutablePath(buf, &sz) == 0)
+      execDir = itksys::SystemTools::GetFilenamePath(std::string(buf));
+#else
+    char buf[PATH_MAX] = {};
+    ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (len > 0)
+      execDir = itksys::SystemTools::GetFilenamePath(std::string(buf, static_cast<size_t>(len)));
+#endif
+    if (!execDir.empty())
+      searchDirs.push_back(execDir);
+  }
 
   // Compile-time path baked in via m2ElxConfig.h (set by CMake superbuild)
   if (std::string(Elastix_DIR) != "")
     searchDirs.push_back(Elastix_DIR);
+
+  const char *elastixPath = std::getenv("ELASTIX_PATH");
+  if (elastixPath && *elastixPath)
+    searchDirs.push_back(elastixPath);
 
 #ifndef _WIN32
   searchDirs.push_back("/opt/elastix/bin");
@@ -61,8 +95,9 @@ std::string m2::ElxUtil::Executable(const std::string &name, std::string additio
   }
 
   mitkThrow() << "Elastix executable '" << name << "' could not be found.\n"
-              << "Searched: additionalSearchPath, ELASTIX_PATH env var, "
-              << "compile-time Elastix_DIR ('" << Elastix_DIR << "')"
+              << "Searched: additionalSearchPath, running-executable dir, "
+              << "compile-time Elastix_DIR ('" << Elastix_DIR << "'), "
+              << "ELASTIX_PATH env var"
 #ifndef _WIN32
               << ", /opt/elastix/bin"
 #endif
