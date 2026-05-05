@@ -45,9 +45,12 @@ if(MITK_USE_Elastix)
       )
     else()
       # Linux/macOS archives: separate bin/ and lib/ subdirectories
+      # chmod is needed because zip/tar extraction via ExternalProject does not
+      # guarantee the execute bit is preserved.
       set(install_cmd
         ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/bin <INSTALL_DIR>/bin
         && ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/lib <INSTALL_DIR>/lib
+        && chmod +x <INSTALL_DIR>/bin/elastix <INSTALL_DIR>/bin/transformix
       )
     endif()
 

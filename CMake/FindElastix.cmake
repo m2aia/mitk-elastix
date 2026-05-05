@@ -11,14 +11,18 @@
 # Search system PATH first; also look inside the superbuild external-project prefix.
 find_program(Elastix_EXECUTABLE
   NAMES elastix
-  HINTS "${MITK_EXTERNAL_PROJECT_PREFIX}/bin"
+  HINTS
+    "${Elastix_DIR}"
+    "${MITK_EXTERNAL_PROJECT_PREFIX}/bin"
   PATH_SUFFIXES bin
   DOC "Path to the elastix executable"
 )
 
 find_program(Transformix_EXECUTABLE
   NAMES transformix
-  HINTS "${MITK_EXTERNAL_PROJECT_PREFIX}/bin"
+  HINTS
+    "${Elastix_DIR}"
+    "${MITK_EXTERNAL_PROJECT_PREFIX}/bin"
   PATH_SUFFIXES bin
   DOC "Path to the transformix executable"
 )
