@@ -24,57 +24,49 @@ See LICENSE.txt for details.
 std::string m2::ElxUtil::Executable(const std::string &name, std::string additionalSearchPath)
 {
   std::string executableName = name;
-  std::string fullPath;
-  
+
 #ifdef _WIN32
-  // On Windows, add .exe extension if not present
-  if (executableName.size() < 4 || executableName.substr(executableName.size() - 4) != ".exe") {
+  if (executableName.size() < 4 || executableName.substr(executableName.size() - 4) != ".exe")
     executableName += ".exe";
-  }
-  
-  // Try ELASTIX_PATH environment variable
-  const char* elastixPath = std::getenv("ELASTIX_PATH");
-  if (elastixPath && *elastixPath) {
-    fullPath = m2::ElxUtil::JoinPath({elastixPath, "/", executableName});
-    MITK_INFO << "Trying Windows ELASTIX_PATH: " << fullPath;
-  } else {
-    mitkThrow() << "ELASTIX_PATH environment variable not set on Windows!";
-  }
-#else
-  // On Unix systems, try multiple paths in order of priority:
-  // 1. additionalSearchPath (if provided)
-  // 2. ELASTIX_PATH environment variable
-  // 3. Default /opt/elastix/bin
-  if (!additionalSearchPath.empty()) {
-    fullPath = m2::ElxUtil::JoinPath({additionalSearchPath, "/", executableName});
-    MITK_INFO << "Trying additional search path: " << fullPath;
-  } else {
-    const char* elastixPath = std::getenv("ELASTIX_PATH");
-    if (elastixPath && *elastixPath) {
-      fullPath = m2::ElxUtil::JoinPath({elastixPath, "/", executableName});
-      MITK_INFO << "Trying Unix ELASTIX_PATH: " << fullPath;
-    } else {
-      fullPath = m2::ElxUtil::JoinPath({"/opt/elastix/bin", "/", executableName});
-      MITK_INFO << "Trying default Unix path: " << fullPath;
-    }
-  }
 #endif
 
   const std::string version_regex = name + "[a-z:\\s]+5\\.[0-9]+";
-  
-  MITK_INFO << "Searching for Elastix executable: " << fullPath;
 
-  if (m2::ElxUtil::CheckVersion(fullPath, version_regex)) {
-    return fullPath;
-  } else {
-#ifdef _WIN32
-    mitkThrow() << "Elastix executables could not be found!\n"
-                   "Please specify the system variable ELASTIX_PATH";
-#else
-    mitkThrow() << "Elastix executables could not be found!\n"
-                   "Please ensure Elastix is installed at /opt/elastix/bin, set ELASTIX_PATH environment variable, or specify an additional search path";
+  // Ordered list of directories to try
+  std::vector<std::string> searchDirs;
+
+  if (!additionalSearchPath.empty())
+    searchDirs.push_back(additionalSearchPath);
+
+  const char *elastixPath = std::getenv("ELASTIX_PATH");
+  if (elastixPath && *elastixPath)
+    searchDirs.push_back(elastixPath);
+
+  // Compile-time path baked in via m2ElxConfig.h (set by CMake superbuild)
+  if (std::string(Elastix_DIR) != "")
+    searchDirs.push_back(Elastix_DIR);
+
+#ifndef _WIN32
+  searchDirs.push_back("/opt/elastix/bin");
 #endif
+
+  for (const auto &dir : searchDirs)
+  {
+    if (dir.empty())
+      continue;
+    auto fullPath = m2::ElxUtil::JoinPath({dir, "/", executableName});
+    MITK_INFO << "Trying Elastix path: " << fullPath;
+    if (m2::ElxUtil::CheckVersion(fullPath, version_regex))
+      return fullPath;
   }
+
+  mitkThrow() << "Elastix executable '" << name << "' could not be found.\n"
+              << "Searched: additionalSearchPath, ELASTIX_PATH env var, "
+              << "compile-time Elastix_DIR ('" << Elastix_DIR << "')"
+#ifndef _WIN32
+              << ", /opt/elastix/bin"
+#endif
+              << ".\nPlease install Elastix or set the ELASTIX_PATH environment variable.";
 
   return "";
 }
