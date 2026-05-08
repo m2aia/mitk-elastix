@@ -51,7 +51,7 @@
          <string>Pre-align images before registration to improve convergence</string>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <item>
          <property name="text">
